@@ -1,16 +1,114 @@
-﻿@{
-    string nameSubject = "Programacion Web II";
-    int number = 20;
+@model IEnumerable<libraryMVC.Models.Book>
+
+@{
+    ViewData["Title"] = "Index";
 }
-<div class="text-center">
-    <h2>@nameSubject</h2>
-    @if(number >=18)
-    {
-        <h2 class="form-floating form-control-plaintext">Mayor de edad</h2>
-        
-    } else
-    {
-        <h2>Menor de edad</h2>
-        
-    }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">Books</h2>
+        <p class="text-muted small mb-0">Book Inventory Management</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Create New
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table  align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">ISBN</th>
+                        <th>Title</th>
+                        <th>Summary</th>
+                        <th>Last Update</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+            @foreach (var item in Model) {
+                    <tr>
+                        <td class="ps-3 fw-semibold">
+                            @item.Isbn
+                        </td>
+                        <td>
+                            @item.Title
+                        </td>
+                        <td class="text-muted small" style="max-width: 250px;">
+                            @item.Summary
+                        </td>
+                        
+                        <td class="text-secondary small">
+                            @if (item.UpdatedAt.HasValue)
+                            {
+                                <span title="@item.UpdatedAt.Value.ToString("F")">
+                                    <i class="bi bi-clock-history me-1 text-muted"></i>@item.UpdatedAt.Value.ToString("dd MMM yyyy, HH:mm")
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">No updates</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge rounded-pill bg-success text-white border border-success px-2 py-1">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-danger text-white border border-danger px-2 py-1">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end pe-3">
+                            <div class="dropdown">
+                                <button class="btn btn-sm border-0 shadow-none p-1 text-secondary" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical fs-5"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li>
+                                        <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id">
+                                            <i class="bi bi-pencil me-2 text-primary"></i> Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id">
+                                            <i class="bi bi-info-circle me-2 text-info"></i> Details
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                            @if (item.IsActive)
+                                            {
+                                                <form asp-action="Deactivate" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                    <button type="submit" class="dropdown-item text-danger"
+                                                            onclick="return confirm('Are you sure you want to delete this book?');">
+                                                        <i class="bi bi-trash me-2"></i> Delete
+                                                    </button>
+                                                </form>
+
+                                                
+                                            } else
+                                            {
+                                                <form asp-action="Restore" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                    <button type="submit" class="dropdown-item text-success"
+                                                            onclick="return confirm('Are you sure you want to activate this book?');">
+                                                        <i class="bi bi-arrow-counterclockwise me-2"></i> Activate
+                                                    </button>
+                                                </form>
+                                            }
+                                            
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+            }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
