@@ -1,0 +1,16 @@
+﻿@{
+    string nameSubject = "Programacion Web II";
+    int number = 20;
+}
+<div class="text-center">
+    <h2>@nameSubject</h2>
+    @if(number >=18)
+    {
+        <h2 class="form-floating form-control-plaintext">Mayor de edad</h2>
+        
+    } else
+    {
+        <h2>Menor de edad</h2>
+        
+    }
+</div>
