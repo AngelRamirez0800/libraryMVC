@@ -1,4 +1,15 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+// Global helper function for summary text expansion ("Read more / Read less")
+function toggleSummaryText(btn) {
+  var wrapper = btn.closest('.summary-wrapper');
+  if (!wrapper) return;
+  var content = wrapper.querySelector('.summary-content');
+  if (!content) return;
 
-// Write your JavaScript code.
+  if (content.classList.contains('line-clamp-3')) {
+    content.classList.remove('line-clamp-3');
+    btn.innerHTML = '<i class="bi bi-chevron-up me-1"></i>Read less';
+  } else {
+    content.classList.add('line-clamp-3');
+    btn.innerHTML = '<i class="bi bi-chevron-down me-1"></i>Read more';
+  }
+}

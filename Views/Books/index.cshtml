@@ -37,8 +37,10 @@
                         <td>
                             @item.Title
                         </td>
-                        <td class="text-muted small" style="max-width: 250px;">
-                            @item.Summary
+                        <td class="text-muted small" style="max-width: 280px;">
+                            <div class="line-clamp-2" title="@item.Summary">
+                                @(string.IsNullOrWhiteSpace(item.Summary) ? "No summary." : item.Summary)
+                            </div>
                         </td>
                         
                         <td class="text-secondary small">

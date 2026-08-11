@@ -1,8 +1,140 @@
-﻿@{
-    ViewData["Title"] = "Acerca De";
+@{
+    ViewData["Title"] = "About - Virtual Library";
 }
 
-<div class="text-center">
-    <h1>Acerca de</h1>
-    <p>Información sobre la aplicación de gestión de biblioteca.</p>
+<!-- Actividad 2 & Actividad 3: Semantic HTML5 + CSS3 in site.css + Virtual Library Theme -->
+<div class="about-container">
+
+    <!-- <header>: Semantic Header -->
+    <header class="about-header text-center">
+        <h1 class="display-6 fw-bold text-primary mb-2">About the Virtual Library</h1>
+        <p class="text-muted lead mb-0">
+            Committed to free access to information, culture, and academic excellence.
+        </p>
+    </header>
+
+    <!-- <main>: Main Content -->
+    <main>
+        <div class="row">
+            
+            <!-- Main Content Column -->
+            <div class="col-lg-8">
+                
+                <!-- <section>: History Section -->
+                <section class="about-section">
+                    <h3 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-bank me-2"></i>Our History
+                    </h3>
+                    
+                    <!-- <article>: Individual Article 1 -->
+                    <article class="about-article">
+                        <p>
+                            The <strong>UEES Virtual Library</strong> was born with the firm purpose of democratizing access to literature and educational resources. Since our foundation, we have established ourselves as a dynamic center for research and learning for students, scholars, and reading enthusiasts.
+                        </p>
+                    </article>
+
+                    <!-- <figure>: Semantic Figure Element with Native Interactive Google Maps & Official Red Pin -->
+                    <figure class="about-figure my-4">
+                        <div class="ratio ratio-16x9 rounded shadow-sm border overflow-hidden">
+                            <iframe 
+                                src="https://maps.google.com/maps?q=Biblioteca+Nacional+de+El+Salvador+BINAES,+San+Salvador,+El+Salvador&t=&z=16&ie=UTF8&iwloc=B&output=embed" 
+                                width="100%" 
+                                height="320" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy">
+                            </iframe>
+                        </div>
+                        <figcaption class="mt-2 text-muted italic">Location: BINAES (Biblioteca Nacional de El Salvador), Centro Histórico, San Salvador, El Salvador.</figcaption>
+                    </figure>
+
+                    <!-- <article>: Individual Article 2 -->
+                    <article class="about-article">
+                        <p>
+                            Through our state-of-the-art MVC system, we integrate the management of literary works, featured authors, and thematic collections into an agile, responsive, and accessible platform from any device.
+                        </p>
+                    </article>
+                </section>
+
+                <!-- <section>: Mission and Vision Section -->
+                <section class="about-section">
+                    <h3 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-compass me-2"></i>Mission and Vision
+                    </h3>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <article class="about-article bg-light p-3 rounded border h-100">
+                                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-flag me-1 text-primary"></i> Mission</h5>
+                                <p class="small text-secondary mb-0">
+                                    To provide high-quality library services and information resources that drive intellectual, academic, and cultural development in our university community and society.
+                                </p>
+                            </article>
+                        </div>
+                        <div class="col-md-6">
+                            <article class="about-article bg-light p-3 rounded border h-100">
+                                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-eye me-1 text-success"></i> Vision</h5>
+                                <p class="small text-secondary mb-0">
+                                    To be recognized as the leading digital library portal nationally, standing out for technological innovation, richness of our editorial collection, and service excellence.
+                                </p>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+
+                </section>
+
+            </div>
+
+            <!-- <aside>: Semantic Sidebar -->
+            <div class="col-lg-4">
+                <aside class="about-sidebar shadow-sm">
+                    <h4 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-clock-history me-2"></i>Opening Hours
+                    </h4>
+                    
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Monday to Friday</span>
+                            <span class="badge bg-primary">7:00 - 20:00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Saturdays</span>
+                            <span class="badge bg-secondary">8:00 - 16:00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Digital Library</span>
+                            <span class="badge bg-success">24 / 7</span>
+                        </li>
+                    </ul>
+
+                    <h4 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-envelope me-2"></i>Contact Us
+                    </h4>
+                    <p class="small text-secondary mb-1">
+                        <i class="bi bi-geo-alt me-1 text-primary"></i> BINAES, Centro Histórico, San Salvador, El Salvador.
+                    </p>
+                    <p class="small text-secondary mb-1">
+                        <i class="bi bi-telephone me-1 text-primary"></i> +503 2200-0000
+                    </p>
+                    <p class="small text-secondary mb-4">
+                        <i class="bi bi-envelope-at me-1 text-primary"></i> library@uees.edu.sv
+                    </p>
+
+                    <hr />
+
+                    <h4 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-shield-check me-2"></i>Our Core Values
+                    </h4>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2 small"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Free Access:</strong> We promote universal availability of knowledge.</li>
+                        <li class="mb-2 small"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Innovation:</strong> We implement modern web technologies to enrich reading.</li>
+                        <li class="mb-0 small"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Editorial Quality:</strong> We meticulously catalog every work and author in our system.</li>
+                    </ul>
+                </aside>
+            </div>
+
+        </div>
+    </main>
+
 </div>

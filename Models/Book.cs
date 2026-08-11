@@ -6,5 +6,6 @@
         public string Title { get; set; }
         public string Summary { get; set; }
         public ICollection<Author> Authors { get; set; } = new List<Author>();
+        public ICollection <BookImage> Images { get; set; } = new List<BookImage>();
     }
 }

@@ -25,6 +25,8 @@
     <Folder Include="Data\Configurations\" />
     <Folder Include="Extensions\" />
     <Folder Include="DTOs\" />
+    <Folder Include="wwwroot\images\books\" />
+    <Folder Include="wwwroot\images\authors\" />
   </ItemGroup>
 
 </Project>

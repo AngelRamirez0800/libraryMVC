@@ -1,14 +1,24 @@
 using libraryMVC.Models;
+using libraryMVC.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace libraryMVC.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly BooksService _booksService;
+
+        public HomeController(BooksService booksService)
         {
-            return View();
+            _booksService = booksService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var featuredBooks = await _booksService.GetFeaturedBooksAsync(3);
+            return View(featuredBooks);
         }
 
         public IActionResult Autores()
@@ -20,6 +30,7 @@ namespace libraryMVC.Controllers
         {
             return View();
         }
+
         public IActionResult Usuarios()
         {
             return View();
@@ -34,11 +45,6 @@ namespace libraryMVC.Controllers
         {
             return View();
         }
-
-
-
-
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

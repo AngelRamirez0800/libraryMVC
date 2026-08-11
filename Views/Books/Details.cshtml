@@ -20,6 +20,7 @@
 </div>
 
 <div class="row">
+    <!-- Information Column -->
     <div class="col-md-8">
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
@@ -36,11 +37,9 @@
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-sm-3 text-muted fw-semibold">ISBN</div>
-                    
                     <div class="col-sm-9 text-secondary">
                         @Model.Isbn
                     </div>
-                    
                 </div>
 
                 <div class="row mb-3">
@@ -53,7 +52,40 @@
                 <div class="row mb-3">
                     <div class="col-sm-3 text-muted fw-semibold">Summary</div>
                     <div class="col-sm-9 text-secondary">
-                        @(string.IsNullOrWhiteSpace(Model.Summary) ? "No summary provided." : Model.Summary)
+                        <div class="summary-wrapper">
+                            <div class="summary-content line-clamp-3">
+                                @(string.IsNullOrWhiteSpace(Model.Summary) ? "No summary provided." : Model.Summary)
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(Model.Summary) && Model.Summary.Length > 80)
+                            {
+                                <button type="button" class="btn btn-link btn-sm p-0 mt-1 text-decoration-none shadow-none fw-semibold" onclick="toggleSummaryText(this)">
+                                    <i class="bi bi-chevron-down me-1"></i>Read more
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted fw-semibold">Authors</div>
+                    <div class="col-sm-9">
+                        @if (Model.Authors != null && Model.Authors.Count > 0)
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var author in Model.Authors)
+                                {
+                                    <a asp-controller="Authors" asp-action="Details" asp-route-id="@author.Id" 
+                                       class="badge bg-light text-dark border me-1 text-decoration-none shadow-sm py-2 px-3"
+                                       title="View author details">
+                                        <i class="bi bi-person-fill me-1 text-primary"></i>@author.FirstName @author.LastName
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">No authors assigned to this book.</span>
+                        }
                     </div>
                 </div>
 
@@ -93,5 +125,42 @@
                 }
             </div>
         </div>
+
+        <!-- Book Images Section -->
+        @if (Model.Images != null && Model.Images.Count > 0)
+        {
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0 fw-semibold">Book Images (@Model.Images.Count)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var image in Model.Images.OrderBy(i => i.ImageNumber))
+                        {
+                            <div class="col-sm-4 mb-3">
+                                <div class="card h-100 shadow-sm border">
+                                    <img src="~/@image.ImagePath.TrimStart('/')" 
+                                         class="card-img-top" 
+                                         alt="Image #@image.ImageNumber"
+                                         style="height: 180px; object-fit: cover;" />
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-semibold small">Image #@image.ImageNumber</span>
+                                            @if (image.IsPrimary)
+                                            {
+                                                <span class="badge bg-success">Primary</span>
+                                            }
+                                        </div>
+                                        <small class="text-muted d-block small">
+                                            <i class="bi bi-hdd me-1"></i>@image.FormattedFileSize
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>

@@ -71,6 +71,29 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-sm-3 text-muted fw-semibold">Books</div>
+                    <div class="col-sm-9">
+                        @if (Model.Books != null && Model.Books.Count > 0)
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var book in Model.Books)
+                                {
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" 
+                                       class="badge bg-light text-dark border me-1 text-decoration-none shadow-sm py-2 px-3"
+                                       title="View book details">
+                                        <i class="bi bi-book-fill me-1 text-primary"></i>@book.Title
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">No books associated with this author yet.</span>
+                        }
+                    </div>
+                </div>
+
                 <hr />
 
                 <div class="row mb-2">
