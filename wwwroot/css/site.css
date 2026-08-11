@@ -1,4 +1,19 @@
-/* Base & Typography Styles */
+/* Obsidian Minimalist Theme Tokens & Design System */
+:root {
+  --obs-bg: #0d0f12;
+  --obs-surface: #16191e;
+  --obs-surface-hover: #1f232b;
+  --obs-accent: #9e7bc4;
+  --obs-accent-hover: #b395d8;
+  --obs-accent-rgb: 158, 123, 196;
+  --obs-border: #262a33;
+  --obs-border-focus: #444c5c;
+  --obs-text: #e2e8f0;
+  --obs-text-muted: #94a3b8;
+  --obs-text-faint: #64748b;
+}
+
+/* Global Reset & Base Typography */
 html {
   font-size: 14px;
   position: relative;
@@ -13,12 +28,417 @@ html {
 
 body {
   margin-bottom: 60px;
-  background-color: #f8f9fa;
-  color: #333333;
+  background-color: var(--obs-bg);
+  color: var(--obs-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Focus States & Accent Highlights */
+.btn:focus, 
+.btn:active:focus, 
+.btn-link.nav-link:focus, 
+.form-control:focus, 
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--obs-accent) !important;
+  box-shadow: 0 0 0 0.2rem rgba(var(--obs-accent-rgb), 0.25) !important;
+}
+
+/* Headings & Text Color Overrides */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--obs-text);
+}
+
+.text-muted {
+  color: var(--obs-text-muted) !important;
+}
+
+.text-secondary {
+  color: var(--obs-text-muted) !important;
+}
+
+.text-primary {
+  color: var(--obs-accent) !important;
+}
+
+/* Obsidian Data Rendering Components & Property Styles */
+.obs-property-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed var(--obs-border);
+}
+
+.obs-property-row:last-child {
+  border-bottom: none;
+}
+
+.obs-property-key {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--obs-text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.obs-property-key i {
+  color: var(--obs-accent);
+  margin-right: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.obs-property-val {
+  flex-grow: 1;
+  font-size: 0.925rem;
+  color: var(--obs-text);
+}
+
+.obs-link-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--obs-surface-hover);
+  color: var(--obs-accent) !important;
+  border: 1px solid var(--obs-border);
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.obs-link-chip:hover {
+  background-color: rgba(var(--obs-accent-rgb), 0.15);
+  border-color: var(--obs-accent);
+  color: var(--obs-accent-hover) !important;
+  transform: translateY(-1px);
+}
+
+.obs-tag-mono {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.825rem;
+  background-color: #111418;
+  color: var(--obs-text-muted);
+  border: 1px solid var(--obs-border);
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.25rem;
+}
+
+.obs-status-dot {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 1rem;
+}
+
+.obs-status-dot.active {
+  background-color: rgba(110, 231, 183, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(110, 231, 183, 0.3);
+}
+
+.obs-status-dot.active::before {
+  content: "●";
+  margin-right: 0.35rem;
+  font-size: 0.7rem;
+}
+
+.obs-status-dot.inactive {
+  background-color: rgba(252, 165, 165, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(252, 165, 165, 0.3);
+}
+
+.obs-status-dot.inactive::before {
+  content: "●";
+  margin-right: 0.35rem;
+  font-size: 0.7rem;
+}
+
+.table.obs-table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--obs-text-faint);
+  font-weight: 600;
+  border-bottom: 1px solid var(--obs-border) !important;
+}
+
+/* Navbar Styling */
+.navbar {
+  background-color: var(--obs-surface) !important;
+  border-bottom: 1px solid var(--obs-border) !important;
+}
+
+.navbar-brand {
+  color: var(--obs-accent) !important;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.nav-link {
+  color: var(--obs-text-muted) !important;
+  transition: color 0.15s ease-in-out;
+  font-weight: 5rem;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--obs-accent) !important;
+}
+
+/* Cards & Containers */
+.card {
+  background-color: var(--obs-surface) !important;
+  border: 1px solid var(--obs-border) !important;
+  color: var(--obs-text) !important;
+}
+
+.card-header {
+  background-color: var(--obs-surface) !important;
+  border-bottom: 1px solid var(--obs-border) !important;
+  color: var(--obs-text) !important;
+}
+
+.card-footer {
+  background-color: var(--obs-surface) !important;
+  border-top: 1px solid var(--obs-border) !important;
+}
+
+/* Form Controls & Inputs */
+.form-control, .form-select {
+  background-color: #111418 !important;
+  border: 1px solid var(--obs-border) !important;
+  color: var(--obs-text) !important;
+}
+
+.form-control::placeholder {
+  color: var(--obs-text-faint) !important;
+}
+
+.form-control:disabled, .form-control[readonly] {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-text-muted) !important;
+}
+
+.form-check-input {
+  background-color: #111418 !important;
+  border-color: var(--obs-border) !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--obs-accent) !important;
+  border-color: var(--obs-accent) !important;
+}
+
+select option {
+  background-color: var(--obs-surface) !important;
+  color: var(--obs-text) !important;
+  padding: 0.35rem;
+}
+
+kbd {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-accent) !important;
+  border: 1px solid var(--obs-border) !important;
+  box-shadow: none !important;
+}
+
+/* Tables & Bootstrap CSS Variable Overrides */
+.table {
+  --bs-table-color: var(--obs-text) !important;
+  --bs-table-bg: var(--obs-surface) !important;
+  --bs-table-border-color: var(--obs-border) !important;
+  --bs-table-accent-bg: transparent !important;
+  --bs-table-striped-color: var(--obs-text) !important;
+  --bs-table-striped-bg: #13151a !important;
+  --bs-table-active-color: var(--obs-text) !important;
+  --bs-table-active-bg: var(--obs-surface-hover) !important;
+  --bs-table-hover-color: var(--obs-text) !important;
+  --bs-table-hover-bg: var(--obs-surface-hover) !important;
+  color: var(--obs-text) !important;
+  background-color: var(--obs-surface) !important;
+  border-color: var(--obs-border) !important;
+}
+
+.table th, 
+.table td, 
+.table tr,
+.table > :not(caption) > * > * {
+  background-color: var(--obs-surface) !important;
+  color: var(--obs-text) !important;
+  border-bottom-color: var(--obs-border) !important;
+}
+
+.table tbody tr:hover,
+.table tbody tr:hover > * {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-text) !important;
+}
+
+.table-light, 
+.table-light th, 
+.table-light td,
+.table-light > :not(caption) > * > * {
+  --bs-table-bg: var(--obs-surface) !important;
+  --bs-table-color: var(--obs-text-muted) !important;
+  background-color: var(--obs-surface) !important;
+  color: var(--obs-text-muted) !important;
+  border-bottom: 1px solid var(--obs-border) !important;
+}
+
+/* Link contrast inside tables */
+.table a:not(.btn):not(.dropdown-item):not(.obs-link-chip) {
+  color: var(--obs-text) !important;
+}
+
+.table a:not(.btn):not(.dropdown-item):not(.obs-link-chip):hover {
+  color: var(--obs-accent) !important;
+}
+
+/* Bootstrap Background & Utility Overrides for Dark Mode */
+.bg-light, .bg-white {
+  background-color: var(--obs-surface) !important;
+  color: var(--obs-text) !important;
+}
+
+.text-dark {
+  color: var(--obs-text) !important;
+}
+
+.list-group-item {
+  background-color: var(--obs-surface) !important;
+  color: var(--obs-text) !important;
+  border-color: var(--obs-border) !important;
+}
+
+.list-group-item-action:hover, .list-group-item-action:focus {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-accent) !important;
+}
+
+/* Dropdowns & Menus */
+.dropdown-menu {
+  background-color: var(--obs-surface) !important;
+  border: 1px solid var(--obs-border) !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.4) !important;
+}
+
+.dropdown-item {
+  color: var(--obs-text) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-accent) !important;
+}
+
+.dropdown-divider {
+  border-top-color: var(--obs-border) !important;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--obs-accent) !important;
+  border-color: var(--obs-accent) !important;
+  color: #0d0f12 !important;
+  font-weight: 600;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--obs-accent-hover) !important;
+  border-color: var(--obs-accent-hover) !important;
+  color: #0d0f12 !important;
+}
+
+.btn-outline-primary {
+  color: var(--obs-accent) !important;
+  border-color: var(--obs-accent) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--obs-accent) !important;
+  color: #0d0f12 !important;
+}
+
+.btn-outline-secondary {
+  color: var(--obs-text-muted) !important;
+  border-color: var(--obs-border) !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-text) !important;
+}
+
+.btn-light {
+  background-color: #e2e8f0 !important;
+  border-color: #e2e8f0 !important;
+  color: #0d0f12 !important;
+  font-weight: 600;
+}
+
+.btn-light:hover {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #0d0f12 !important;
+}
+
+.btn-outline-light {
+  color: var(--obs-text) !important;
+  border-color: var(--obs-border) !important;
+}
+
+.btn-outline-light:hover {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-text) !important;
+}
+
+/* Badges */
+.badge.bg-light {
+  background-color: var(--obs-surface-hover) !important;
+  color: var(--obs-text) !important;
+  border-color: var(--obs-border) !important;
+}
+
+.badge.bg-success {
+  background-color: rgba(78, 154, 117, 0.2) !important;
+  color: #6ee7b7 !important;
+  border: 1px solid rgba(78, 154, 117, 0.4) !important;
+}
+
+.badge.bg-danger {
+  background-color: rgba(196, 110, 110, 0.2) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(196, 110, 110, 0.4) !important;
+}
+
+.badge.bg-warning {
+  background-color: rgba(200, 175, 110, 0.2) !important;
+  color: #fde047 !important;
+  border: 1px solid rgba(200, 175, 110, 0.4) !important;
+}
+
+.badge.bg-info {
+  background-color: rgba(110, 177, 191, 0.2) !important;
+  color: #7dd3fc !important;
+  border: 1px solid rgba(110, 177, 191, 0.4) !important;
+}
+
+.badge.bg-primary {
+  background-color: rgba(158, 123, 196, 0.2) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(158, 123, 196, 0.4) !important;
+}
+
+/* Footer */
+footer {
+  background-color: var(--obs-surface) !important;
+  border-top: 1px solid var(--obs-border) !important;
+  color: var(--obs-text-muted) !important;
 }
 
 /* Utilities */
@@ -36,22 +456,22 @@ body {
   overflow: hidden;
 }
 
-/* Hero & Feature Section Styling (Bootstrap Home Enhancements) */
+/* Hero Banner & Feature Cards */
 .hero-banner {
-  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #16191e 0%, #101216 100%);
+  border: 1px solid var(--obs-border);
+  color: var(--obs-text);
   border-radius: 0.75rem;
   padding: 3rem 2rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
 .feature-card {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 .feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+  border-color: var(--obs-accent) !important;
 }
 
 .carousel-overlay {
@@ -60,7 +480,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 55%, rgba(15, 23, 42, 0.35) 100%);
+  background: linear-gradient(90deg, rgba(13, 15, 18, 0.92) 0%, rgba(13, 15, 18, 0.75) 55%, rgba(13, 15, 18, 0.4) 100%);
   display: flex;
   align-items: center;
   padding: 2.5rem 3rem;
@@ -71,23 +491,23 @@ body {
   width: 100%;
 }
 
-/* Semantic HTML5 Styles for About Page (Actividad 2: HTML5 Semántico + CSS3) */
+/* Semantic HTML5 Styles for About Page */
 .about-container {
   padding: 1.5rem 0;
 }
 
 .about-header {
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 1px solid var(--obs-border);
   padding-bottom: 1rem;
   margin-bottom: 2rem;
 }
 
 .about-section {
-  background: #ffffff;
+  background: var(--obs-surface);
   border-radius: 0.5rem;
   padding: 1.75rem;
   margin-bottom: 1.75rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--obs-border);
 }
 
 .about-article {
@@ -96,10 +516,10 @@ body {
 }
 
 .about-sidebar {
-  background: #ffffff;
+  background: var(--obs-surface);
   border-radius: 0.5rem;
   padding: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--obs-border);
 }
 
 .about-figure {
@@ -114,16 +534,16 @@ body {
 
 .about-figure figcaption {
   font-size: 0.875rem;
-  color: #6c757d;
+  color: var(--obs-text-faint);
   margin-top: 0.5rem;
   font-style: italic;
 }
 
-/* Media Queries for Responsive Design (Actividad 4: Media Queries) */
+/* Media Queries for Responsive Design */
 @media (max-width: 767.98px) {
   .carousel-overlay {
     padding: 1.5rem 1.25rem;
-    background: rgba(15, 23, 42, 0.82);
+    background: rgba(13, 15, 18, 0.88);
   }
 
   .hero-banner {
