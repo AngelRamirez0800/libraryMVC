@@ -20,13 +20,11 @@ namespace libraryMVC.Data.Repositories
 
             if (book == null) return;
 
-            book.Authors.Clear();
             var selectedAuthors = await _context.Authors
                 .Where(a => authorIds.Contains(a.Id))
                 .ToListAsync();
 
-            foreach (var author in selectedAuthors)
-                book.Authors.Add(author);
+            book.ReplaceAuthors(selectedAuthors);
 
             await _context.SaveChangesAsync();
         }

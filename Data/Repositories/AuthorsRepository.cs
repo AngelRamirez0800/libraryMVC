@@ -16,11 +16,6 @@ namespace libraryMVC.Data.Repositories
             _context = context;
         }
 
-        public override async Task<Author?> GetByIdAsync(Guid id)
-        {
-            return await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
-        }
-
         public async Task<Author?> GetByIdWithBooksAsync(Guid id)
         {
             return await _context.Authors

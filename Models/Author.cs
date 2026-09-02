@@ -7,6 +7,14 @@
         public String Nationality { get; set; } = String.Empty;
         public DateTime BirthDate { get; set; }
 
-        public ICollection<Book> Books { get; set; } = new List<Book>();
+        private readonly List<Book> _books = new();
+
+        public IReadOnlyCollection<Book> Books => _books;
+
+        public void ReplaceBooks(IEnumerable<Book> books)
+        {
+            _books.Clear();
+            _books.AddRange(books);
+        }
     }
 }

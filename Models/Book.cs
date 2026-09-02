@@ -5,7 +5,26 @@
         public required string Isbn { get; set; }
         public string Title { get; set; }
         public string Summary { get; set; }
-        public ICollection<Author> Authors { get; set; } = new List<Author>();
-        public ICollection <BookImage> Images { get; set; } = new List<BookImage>();
+        private readonly List<Author> _authors = new();
+        private readonly List<BookImage> _images = new();
+
+        public IReadOnlyCollection<Author> Authors => _authors;
+        public IReadOnlyCollection<BookImage> Images => _images;
+
+        public void ReplaceAuthors(IEnumerable<Author> authors)
+        {
+            _authors.Clear();
+            _authors.AddRange(authors);
+        }
+
+        public void AddImage(BookImage image)
+        {
+            _images.Add(image);
+        }
+
+        public void RemoveImage(BookImage image)
+        {
+            _images.Remove(image);
+        }
     }
 }
