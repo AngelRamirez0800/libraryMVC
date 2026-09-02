@@ -16,7 +16,7 @@ namespace libraryMVC.Services
         }
 
         public async Task<T> AddAsync(T entity) => await _repository.AddAsync(entity);
-        public async Task<T> UpdateSync(T entity) => await _repository.UpdateSync(entity);
+        public async Task<T> UpdateAsync(T entity) => await _repository.UpdateAsync(entity);
         public async Task<bool> DeleteAsync(I id) => await _repository.DeleteAsync(id);
         public async Task<bool> RestoreAsync(I id) => await _repository.RestoreAsync(id);
         public async Task<bool> AlreadyExistsAsync(I id) => await _repository.AlreadyExistsAsync(id);

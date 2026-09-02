@@ -27,7 +27,7 @@ namespace libraryMVC.Data.Repositories
             return entity;
         }
 
-        public virtual async Task<T> UpdateSync(T entity)
+        public virtual async Task<T> UpdateAsync(T entity)
         {
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();

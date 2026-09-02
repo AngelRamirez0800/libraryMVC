@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using libraryMVC.Data.Repositories;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 
@@ -11,10 +10,14 @@ namespace libraryMVC.Services
     public class AuthorsService : Service<Author, Guid>, IAuthorsService
     {
         private readonly IAuthorsRepository _repository;
+        private readonly IAuthorBookService _authorBookService;
 
-        public AuthorsService(IAuthorsRepository repository) : base(repository)
+        public AuthorsService(
+            IAuthorsRepository repository,
+            IAuthorBookService authorBookService) : base(repository)
         {
             _repository = repository;
+            _authorBookService = authorBookService;
         }
 
         public async Task<Author> CreateAsync(Author author, IEnumerable<Guid>? bookIds)
@@ -23,7 +26,7 @@ namespace libraryMVC.Services
             await AddAsync(author);
 
             if (bookIds != null)
-                await UpdateAuthorBooksAsync(author.Id, bookIds);
+                await _authorBookService.UpdateAsync(author.Id, bookIds);
 
             return author;
         }
@@ -43,8 +46,8 @@ namespace libraryMVC.Services
             else
                 existingAuthor.Deactivate();
 
-            await UpdateSync(existingAuthor);
-            await UpdateAuthorBooksAsync(id, bookIds);
+            await UpdateAsync(existingAuthor);
+            await _authorBookService.UpdateAsync(id, bookIds);
             return existingAuthor;
         }
 
@@ -53,9 +56,5 @@ namespace libraryMVC.Services
             return await _repository.GetByIdWithBooksAsync(id);
         }
 
-        public async Task UpdateAuthorBooksAsync(Guid authorId, IEnumerable<Guid> bookIds)
-        {
-            await _repository.UpdateAuthorBooksAsync(authorId, bookIds);
-        }
     }
 }

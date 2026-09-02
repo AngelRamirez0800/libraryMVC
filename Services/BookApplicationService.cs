@@ -53,7 +53,7 @@ namespace libraryMVC.Services
             else
                 existingBook.Deactivate();
 
-            await _books.UpdateSync(existingBook);
+            await _books.UpdateAsync(existingBook);
             await _authors.UpdateAsync(id, authorIds);
 
             if (images != null && images.Count > 0)
