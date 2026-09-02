@@ -3,10 +3,13 @@ using libraryMVC.DTOs;
 
 namespace libraryMVC.Interfaces
 {
-    public interface IAuthorsService : IService<Author, Guid>
+    public interface IAuthorsService :
+        IEntityReaderService<Author, Guid>,
+        IEntityWriterService<Author, Guid>,
+        IEntityLifecycleService<Author, Guid>,
+        IAuthorQueries,
+        IAuthorLifecycle,
+        IAuthorApplicationService
     {
-        Task<Author> CreateAsync(AuthorInput input, IEnumerable<Guid>? bookIds);
-        Task<Author?> UpdateAsync(Guid id, AuthorInput input, IEnumerable<Guid> bookIds);
-        Task<Author?> GetByIdWithBooksAsync(Guid id);
     }
 }

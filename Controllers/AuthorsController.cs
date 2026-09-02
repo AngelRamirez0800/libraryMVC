@@ -11,31 +11,39 @@ namespace libraryMVC.Controllers
 {
     public class AuthorsController : Controller
     {
-        private readonly IAuthorsService _authorService;
-        private readonly IBooksService _bookService;
+        private readonly IAuthorQueries _authorQueries;
+        private readonly IAuthorApplicationService _authorApplication;
+        private readonly IAuthorLifecycle _authorLifecycle;
+        private readonly IBookQueries _bookQueries;
 
-        public AuthorsController(IAuthorsService authorService, IBooksService bookService)
+        public AuthorsController(
+            IAuthorQueries authorQueries,
+            IAuthorApplicationService authorApplication,
+            IAuthorLifecycle authorLifecycle,
+            IBookQueries bookQueries)
         {
-            _authorService = authorService;
-            _bookService = bookService;
+            _authorQueries = authorQueries;
+            _authorApplication = authorApplication;
+            _authorLifecycle = authorLifecycle;
+            _bookQueries = bookQueries;
         }
 
         public async Task<IActionResult> Index()
         {
-            var authors = await _authorService.GetAllAsync();
+            var authors = await _authorQueries.GetAllAsync();
             return View(authors);
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
-            var author = await _authorService.GetByIdWithBooksAsync(id);
+            var author = await _authorQueries.GetByIdWithBooksAsync(id);
             if (author == null) return NotFound();
             return View(author);
         }
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Books = await _bookService.GetAllAsync();
+            ViewBag.Books = await _bookQueries.GetAllAsync();
             return View();
         }
 
@@ -45,21 +53,21 @@ namespace libraryMVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _authorService.CreateAsync(author, selectedBookIds);
+                await _authorApplication.CreateAsync(author, selectedBookIds);
                 TempData["Success"] = "Autor creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Books = await _bookService.GetAllAsync();
+            ViewBag.Books = await _bookQueries.GetAllAsync();
             return View(new Author(author.FirstName, author.LastName, author.Nationality, author.BirthDate, author.IsActive));
         }
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            var author = await _authorService.GetByIdWithBooksAsync(id);
+            var author = await _authorQueries.GetByIdWithBooksAsync(id);
             if (author == null) return NotFound();
 
-            ViewBag.Books = await _bookService.GetAllAsync();
+            ViewBag.Books = await _bookQueries.GetAllAsync();
             return View(author);
         }
 
@@ -70,7 +78,7 @@ namespace libraryMVC.Controllers
             var targetId = id != Guid.Empty ? id : author.Id;
             if (targetId == Guid.Empty) return NotFound();
 
-            var updatedAuthor = await _authorService.UpdateAsync(
+            var updatedAuthor = await _authorApplication.UpdateAsync(
                 targetId,
                 author,
                 selectedBookIds ?? new List<Guid>());
@@ -83,14 +91,14 @@ namespace libraryMVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Deactivate(Guid id)
         {
-            await _authorService.DeleteAsync(id);
+            await _authorLifecycle.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> Restore(Guid id)
         {
-            await _authorService.RestoreAsync(id);
+            await _authorLifecycle.RestoreAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

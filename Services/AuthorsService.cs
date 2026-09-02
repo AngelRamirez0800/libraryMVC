@@ -8,14 +8,14 @@ using libraryMVC.Models;
 
 namespace libraryMVC.Services
 {
-    public class AuthorsService : Service<Author, Guid>, IAuthorsService
+    public class AuthorsService : Service<Author, Guid>, IAuthorsService, IAuthorQueries, IAuthorLifecycle, IAuthorApplicationService
     {
         private readonly IAuthorsRepository _repository;
         private readonly IAuthorBookService _authorBookService;
 
         public AuthorsService(
             IAuthorsRepository repository,
-            IAuthorBookService authorBookService) : base(repository)
+            IAuthorBookService authorBookService) : base(repository, repository, repository)
         {
             _repository = repository;
             _authorBookService = authorBookService;

@@ -3,9 +3,12 @@ using libraryMVC.Models;
 
 namespace libraryMVC.Interfaces
 {
-    public interface IBooksService : IService<Book, Guid>
+    public interface IBooksService :
+        IEntityReaderService<Book, Guid>,
+        IEntityWriterService<Book, Guid>,
+        IEntityLifecycleService<Book, Guid>,
+        IBookQueries,
+        IBookLifecycle
     {
-        Task<Book?> GetByIdWithDetailsAsync(Guid id);
-        Task<List<Book>> GetFeaturedBooksAsync(int count = 3);
     }
 }

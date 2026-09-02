@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 
 namespace libraryMVC.Data.Repositories
 {
-    public class Repository<T, I> : IRepository<T, I>
+    public class Repository<T, I> :
+        IEntityReaderRepository<T, I>,
+        IEntityWriterRepository<T, I>,
+        IEntityLifecycleRepository<T, I>
         where T : Entity<I> 
     {
         private readonly ApplicationDbContext _context;

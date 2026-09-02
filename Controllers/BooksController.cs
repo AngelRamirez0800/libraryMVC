@@ -12,18 +12,21 @@ namespace libraryMVC.Controllers
 {
     public class BooksController : Controller
     {
-        private readonly IBooksService _bookService;
+        private readonly IBookQueries _bookService;
         private readonly IBookApplicationService _bookApplicationService;
-        private readonly IAuthorsService _authorService;
+        private readonly IAuthorQueries _authorService;
+        private readonly IBookLifecycle _bookLifecycle;
 
         public BooksController(
-            IBooksService bookService,
+            IBookQueries bookService,
             IBookApplicationService bookApplicationService,
-            IAuthorsService authorService)
+            IAuthorQueries authorService,
+            IBookLifecycle bookLifecycle)
         {
             _bookService = bookService;
             _bookApplicationService = bookApplicationService;
             _authorService = authorService;
+            _bookLifecycle = bookLifecycle;
         }
 
         public async Task<IActionResult> Index()
@@ -107,14 +110,14 @@ namespace libraryMVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Deactivate(Guid id)
         {
-            await _bookService.DeleteAsync(id);
+            await _bookLifecycle.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> Restore(Guid id)
         {
-            await _bookService.RestoreAsync(id);
+            await _bookLifecycle.RestoreAsync(id);
             return RedirectToAction(nameof(Index)); 
         }
 

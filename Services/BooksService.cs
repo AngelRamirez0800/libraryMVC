@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace libraryMVC.Services
 {
-    public class BooksService : Service<Book, Guid>, IBooksService
+    public class BooksService : Service<Book, Guid>, IBooksService, IBookQueries, IBookLifecycle
     {
         private readonly IBooksRepository _repository;
 
-        public BooksService(IBooksRepository repository) : base(repository)
+        public BooksService(IBooksRepository repository) : base(repository, repository, repository)
         {
             _repository = repository;
         }

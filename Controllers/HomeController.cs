@@ -8,9 +8,9 @@ namespace libraryMVC.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IBooksService _booksService;
+        private readonly IBookQueries _booksService;
 
-        public HomeController(IBooksService booksService)
+        public HomeController(IBookQueries booksService)
         {
             _booksService = booksService;
         }
