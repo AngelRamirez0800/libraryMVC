@@ -1,4 +1,5 @@
 using libraryMVC.Interfaces;
+using libraryMVC.DTOs;
 using libraryMVC.Models;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Http;
@@ -46,33 +47,25 @@ namespace libraryMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Book book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
+        public async Task<IActionResult> Create(BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (images != null && images.Count > 0)
-                {
-                    try
-                    {
-                        await _bookApplicationService.CreateAsync(book, selectedAuthorIds, images);
-                    }
-                    catch (Exception ex)
-                    {
-                        TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
-                        return RedirectToAction(nameof(Edit), new { id = book.Id });
-                    }
-                }
-                else
-                {
-                    await _bookApplicationService.CreateAsync(book, selectedAuthorIds, null);
-                }
+                ViewBag.Authors = await _authorService.GetAllAsync();
+                return View(new Book(book.Isbn, book.Title, book.Summary, book.IsActive));
+            }
 
+            try
+            {
+                await _bookApplicationService.CreateAsync(book, selectedAuthorIds, images);
                 TempData["Success"] = "Libro creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-
-            ViewBag.Authors = await _authorService.GetAllAsync();
-            return View(book);
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new { id = book.Id });
+            }
         }
 
         public async Task<IActionResult> Edit(Guid id)
@@ -85,37 +78,27 @@ namespace libraryMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Book book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
+        public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
         {
             var targetId = id != Guid.Empty ? id : book.Id;
             if (targetId == Guid.Empty) return NotFound();
 
-            if (images != null && images.Count > 0)
-            {
-                try
-                {
-                    var updatedBook = await _bookApplicationService.UpdateAsync(
-                        targetId,
-                        book,
-                        selectedAuthorIds ?? new List<Guid>(),
-                        images);
-                    if (updatedBook == null) return NotFound();
-                    TempData["Success"] = $"Libro, autores e imágenes ({images.Count}) actualizados correctamente.";
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = $"Información y autores guardados, pero hubo un error con las imágenes: {ex.Message}";
-                }
-            }
-            else
+            try
             {
                 var updatedBook = await _bookApplicationService.UpdateAsync(
                     targetId,
                     book,
                     selectedAuthorIds ?? new List<Guid>(),
-                    null);
+                    images);
                 if (updatedBook == null) return NotFound();
-                TempData["Success"] = "Libro y autores actualizados correctamente.";
+
+                TempData["Success"] = images != null && images.Count > 0
+                    ? $"Libro, autores e imágenes ({images.Count}) actualizados correctamente."
+                    : "Libro y autores actualizados correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Información y autores guardados, pero hubo un error con las imágenes: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Edit), new { id = targetId });

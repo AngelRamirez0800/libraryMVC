@@ -17,11 +17,6 @@ namespace libraryMVC.Services
             _repository = repository;
         }
 
-        public async Task<Book?> GetByIdWithImagesAsync(Guid id)
-        {
-            return await _repository.GetByIdWithImagesAsync(id);
-        }
-
         public async Task<Book?> GetByIdWithDetailsAsync(Guid id)
         {
             return await _repository.GetByIdWithDetailsAsync(id);

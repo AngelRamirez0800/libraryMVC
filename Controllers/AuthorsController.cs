@@ -1,4 +1,5 @@
 using libraryMVC.Interfaces;
+using libraryMVC.DTOs;
 using libraryMVC.Models;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ namespace libraryMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Author author, List<Guid>? selectedBookIds)
+        public async Task<IActionResult> Create(AuthorInput author, List<Guid>? selectedBookIds)
         {
             if (ModelState.IsValid)
             {
@@ -50,7 +51,7 @@ namespace libraryMVC.Controllers
             }
 
             ViewBag.Books = await _bookService.GetAllAsync();
-            return View(author);
+            return View(new Author(author.FirstName, author.LastName, author.Nationality, author.BirthDate, author.IsActive));
         }
 
         public async Task<IActionResult> Edit(Guid id)
@@ -64,7 +65,7 @@ namespace libraryMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Author author, List<Guid>? selectedBookIds)
+        public async Task<IActionResult> Edit(Guid id, AuthorInput author, List<Guid>? selectedBookIds)
         {
             var targetId = id != Guid.Empty ? id : author.Id;
             if (targetId == Guid.Empty) return NotFound();

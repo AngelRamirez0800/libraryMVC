@@ -17,14 +17,6 @@ namespace libraryMVC.Data.Repositories
             _context = context;
         }
 
-        public async Task<Book?> GetByIdWithImagesAsync(Guid id)
-        {
-            return await _context.Books
-                .Include(b => b.Authors)
-                .Include(b => b.Images.OrderBy(i => i.ImageNumber))
-                .FirstOrDefaultAsync(b => b.Id == id);
-        }
-
         public async Task<Book?> GetByIdWithDetailsAsync(Guid id)
         {
             return await _context.Books

@@ -26,14 +26,12 @@ namespace libraryMVC.Services
                 ValidateImageFile(imageFile);
                 var storedImage = await _storage.SaveAsync(bookId, imageFile);
 
-                var bookImage = new BookImage
-                {
-                    BookId = bookId,
-                    ImagePath = storedImage.ImagePath,
-                    ImageNumber = storedImage.ImageNumber,
-                    OriginalFileName = imageFile.FileName,
-                    FileSize = storedImage.FileSize,
-                };
+                var bookImage = new BookImage(
+                    bookId,
+                    storedImage.ImagePath,
+                    storedImage.ImageNumber,
+                    imageFile.FileName,
+                    storedImage.FileSize);
 
                 await _repository.AddAsync(bookImage);
             }

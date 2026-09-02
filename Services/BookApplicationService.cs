@@ -1,4 +1,5 @@
 using libraryMVC.Interfaces;
+using libraryMVC.DTOs;
 using libraryMVC.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -21,11 +22,12 @@ namespace libraryMVC.Services
         }
 
         public async Task<Book> CreateAsync(
-            Book book,
+            BookInput input,
             IEnumerable<Guid>? authorIds,
             ICollection<IFormFile>? images)
         {
-            book.CreatedAt = DateTime.Now;
+            var book = new Book(input.Isbn, input.Title, input.Summary, input.IsActive);
+            book.MarkCreated();
             await _books.AddAsync(book);
             await _authors.UpdateAsync(book.Id, authorIds ?? Enumerable.Empty<Guid>());
 
@@ -37,18 +39,16 @@ namespace libraryMVC.Services
 
         public async Task<Book?> UpdateAsync(
             Guid id,
-            Book book,
+            BookInput input,
             IEnumerable<Guid> authorIds,
             ICollection<IFormFile>? images)
         {
             var existingBook = await _books.GetByIdAsync(id);
             if (existingBook == null) return null;
 
-            existingBook.Isbn = book.Isbn;
-            existingBook.Title = book.Title;
-            existingBook.Summary = book.Summary;
+            existingBook.UpdateDetails(input.Isbn, input.Title, input.Summary);
 
-            if (book.IsActive)
+            if (input.IsActive)
                 existingBook.Activate();
             else
                 existingBook.Deactivate();
