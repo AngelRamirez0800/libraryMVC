@@ -5,37 +5,47 @@ namespace libraryMVC.Services
 {
     public class BookImageService : IBookImageService
     {
-        
         private readonly IBookImageStorage _storage;
+        private readonly IBookImageRepository _repository;
         private readonly string[] _allowedExtensions = { ".webp", ".jpg", ".jpeg", ".png" };
         private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
 
-        public BookImageService(IBookImageStorage storage)
+        public BookImageService(IBookImageStorage storage, IBookImageRepository repository)
         {
             _storage = storage;
+            _repository = repository;
         }
 
-        public async Task<BookImage> SaveBookImageAsync(Guid bookId, IFormFile imageFile)
+        public async Task AddToBookAsync(Guid bookId, ICollection<IFormFile> imageFiles)
         {
-            ValidateImageFile(imageFile);
+            if (imageFiles == null || imageFiles.Count == 0)
+                throw new ArgumentException("Debes seleccionar al menos una imagen.");
 
-            var storedImage = await _storage.SaveAsync(bookId, imageFile);
-
-            var bookImage = new BookImage
+            foreach (var imageFile in imageFiles)
             {
-                BookId = bookId,
-                ImagePath = storedImage.ImagePath,
-                ImageNumber = storedImage.ImageNumber,
-                OriginalFileName = imageFile.FileName,
-                FileSize = storedImage.FileSize,
-            };
+                ValidateImageFile(imageFile);
+                var storedImage = await _storage.SaveAsync(bookId, imageFile);
 
-            return bookImage;
+                var bookImage = new BookImage
+                {
+                    BookId = bookId,
+                    ImagePath = storedImage.ImagePath,
+                    ImageNumber = storedImage.ImageNumber,
+                    OriginalFileName = imageFile.FileName,
+                    FileSize = storedImage.FileSize,
+                };
 
+                await _repository.AddAsync(bookImage);
+            }
         }
 
-        public void DeleteBookImage(BookImage bookImage)
+        public async Task RemoveAsync(Guid imageId)
         {
+            var bookImage = await _repository.GetByIdAsync(imageId);
+            if (bookImage == null)
+                throw new InvalidOperationException("Imagen no encontrada.");
+
+            await _repository.RemoveAsync(bookImage);
             _storage.Delete(bookImage);
         }
 

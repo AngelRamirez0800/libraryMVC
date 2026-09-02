@@ -12,11 +12,16 @@ namespace libraryMVC.Controllers
     public class BooksController : Controller
     {
         private readonly IBooksService _bookService;
+        private readonly IBookApplicationService _bookApplicationService;
         private readonly IAuthorsService _authorService;
 
-        public BooksController(IBooksService bookService, IAuthorsService authorService)
+        public BooksController(
+            IBooksService bookService,
+            IBookApplicationService bookApplicationService,
+            IAuthorsService authorService)
         {
             _bookService = bookService;
+            _bookApplicationService = bookApplicationService;
             _authorService = authorService;
         }
 
@@ -49,7 +54,7 @@ namespace libraryMVC.Controllers
                 {
                     try
                     {
-                        await _bookService.CreateAsync(book, selectedAuthorIds, images);
+                        await _bookApplicationService.CreateAsync(book, selectedAuthorIds, images);
                     }
                     catch (Exception ex)
                     {
@@ -59,7 +64,7 @@ namespace libraryMVC.Controllers
                 }
                 else
                 {
-                    await _bookService.CreateAsync(book, selectedAuthorIds, null);
+                    await _bookApplicationService.CreateAsync(book, selectedAuthorIds, null);
                 }
 
                 TempData["Success"] = "Libro creado correctamente.";
@@ -89,7 +94,7 @@ namespace libraryMVC.Controllers
             {
                 try
                 {
-                    var updatedBook = await _bookService.UpdateAsync(
+                    var updatedBook = await _bookApplicationService.UpdateAsync(
                         targetId,
                         book,
                         selectedAuthorIds ?? new List<Guid>(),
@@ -104,7 +109,7 @@ namespace libraryMVC.Controllers
             }
             else
             {
-                var updatedBook = await _bookService.UpdateAsync(
+                var updatedBook = await _bookApplicationService.UpdateAsync(
                     targetId,
                     book,
                     selectedAuthorIds ?? new List<Guid>(),
@@ -142,7 +147,7 @@ namespace libraryMVC.Controllers
                     return RedirectToAction(nameof(Edit), new { id });
                 }
 
-                await _bookService.AddImagesToBookAsync(id, images);
+                await _bookApplicationService.AddImagesAsync(id, images);
                 TempData["Success"] = $"Se han subido {images.Count} imagen(es) correctamente.";
                 return RedirectToAction(nameof(Edit), new { id });
             }
@@ -159,7 +164,7 @@ namespace libraryMVC.Controllers
         {
             try
             {
-                await _bookService.RemoveImageFromBookAsync(imageId);
+                await _bookApplicationService.RemoveImageAsync(imageId);
                 TempData["Success"] = "Imagen eliminada correctamente.";
                 return RedirectToAction(nameof(Edit), new { id = bookId });
             }

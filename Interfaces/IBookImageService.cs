@@ -5,7 +5,7 @@ namespace libraryMVC.Interfaces
 {
     public interface IBookImageService
     {
-        Task<BookImage> SaveBookImageAsync(Guid bookId, IFormFile imageFile);
-        void DeleteBookImage(BookImage bookImage);
+        Task AddToBookAsync(Guid bookId, ICollection<IFormFile> imageFiles);
+        Task RemoveAsync(Guid imageId);
     }
 }

@@ -27,6 +27,10 @@ builder.Services.AddScoped<IAuthorsService, AuthorsService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<IBookImageService, BookImageService>();
 builder.Services.AddScoped<IBookImageStorage, LocalBookImageStorage>();
+builder.Services.AddScoped<IBookAuthorRepository, BookAuthorRepository>();
+builder.Services.AddScoped<IBookAuthorService, BookAuthorService>();
+builder.Services.AddScoped<IBookImageRepository, BookImageRepository>();
+builder.Services.AddScoped<IBookApplicationService, BookApplicationService>();
 
 var app = builder.Build();
 
