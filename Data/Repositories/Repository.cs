@@ -12,7 +12,7 @@ namespace libraryMVC.Data.Repositories
         IEntityReaderRepository<T, I>,
         IEntityWriterRepository<T, I>,
         IEntityLifecycleRepository<T, I>
-        where T : Entity<I> 
+        where T : Entity<I>
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;

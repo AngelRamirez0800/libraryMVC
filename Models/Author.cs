@@ -1,6 +1,6 @@
 ﻿namespace libraryMVC.Models
 {
-    public class Author: Entity<Guid>
+    public class Author : Entity<Guid>
     {
         public Author()
         {

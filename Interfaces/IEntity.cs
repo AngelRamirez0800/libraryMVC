@@ -1,6 +1,6 @@
 namespace libraryMVC.Abstractions
 {
-    public interface IEntity <T> 
+    public interface IEntity<T>
     {
         public T Id { get; }
         public DateTime CreatedAt { get; }

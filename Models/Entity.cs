@@ -17,14 +17,16 @@ namespace libraryMVC.Models
 
 
 
-        public virtual void Deactivate() {
+        public virtual void Deactivate()
+        {
 
             IsActive = false;
             DeletedAt = DateTime.Now;
             UpdatedAt = DateTime.Now;
         }
 
-        public virtual void Activate() {
+        public virtual void Activate()
+        {
             IsActive = true;
             DeletedAt = null;
             UpdatedAt = DateTime.Now;

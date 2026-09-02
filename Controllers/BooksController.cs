@@ -118,7 +118,7 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Restore(Guid id)
         {
             await _bookLifecycle.RestoreAsync(id);
-            return RedirectToAction(nameof(Index)); 
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
