@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace libraryMVC.Data.Repositories
 {
-    public class AuthorsRepository : Repository<Author, Guid>
+    public class AuthorsRepository : Repository<Author, Guid>, IAuthorsRepository
     {
         private readonly ApplicationDbContext _context;
 

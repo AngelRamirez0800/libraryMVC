@@ -8,15 +8,52 @@ using Microsoft.AspNetCore.Http;
 
 namespace libraryMVC.Services
 {
-    public class BooksService : Service<Book, Guid>
+    public class BooksService : Service<Book, Guid>, IBooksService
     {
-        private readonly BooksRepository _repository;
-        private readonly BookImageService _imageService;
+        private readonly IBooksRepository _repository;
+        private readonly IBookImageService _imageService;
 
-        public BooksService(BooksRepository repository, BookImageService imageService) : base(repository)
+        public BooksService(IBooksRepository repository, IBookImageService imageService) : base(repository)
         {
             _repository = repository;
             _imageService = imageService;
+        }
+
+        public async Task<Book> CreateAsync(Book book, IEnumerable<Guid>? authorIds, ICollection<IFormFile>? images)
+        {
+            book.CreatedAt = DateTime.Now;
+            await AddAsync(book);
+
+            if (authorIds != null)
+                await UpdateBookAuthorsAsync(book.Id, authorIds);
+
+            if (images != null && images.Count > 0)
+                await AddImagesToBookAsync(book.Id, images);
+
+            return book;
+        }
+
+        public async Task<Book?> UpdateAsync(Guid id, Book book, IEnumerable<Guid> authorIds, ICollection<IFormFile>? images)
+        {
+            var existingBook = await GetByIdWithDetailsAsync(id);
+            if (existingBook == null) return null;
+
+            existingBook.Isbn = book.Isbn;
+            existingBook.Title = book.Title;
+            existingBook.Summary = book.Summary;
+
+            if (book.IsActive)
+                existingBook.Activate();
+            else
+                existingBook.Deactivate();
+
+            await UpdateSync(existingBook);
+            await UpdateBookAuthorsAsync(id, authorIds);
+
+            if (images != null && images.Count > 0)
+                await AddImagesToBookAsync(id, images);
+
+            return existingBook;
         }
 
         public async Task<Book?> GetByIdWithImagesAsync(Guid id)

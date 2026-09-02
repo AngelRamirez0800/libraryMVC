@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace libraryMVC.Data.Repositories
 {
-    public class BooksRepository : Repository<Book, Guid>
+    public class BooksRepository : Repository<Book, Guid>, IBooksRepository
     {
         private readonly ApplicationDbContext _context;
 

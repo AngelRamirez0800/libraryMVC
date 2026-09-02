@@ -1,5 +1,5 @@
+using libraryMVC.Interfaces;
 using libraryMVC.Models;
-using libraryMVC.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -8,9 +8,9 @@ namespace libraryMVC.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly BooksService _booksService;
+        private readonly IBooksService _booksService;
 
-        public HomeController(BooksService booksService)
+        public HomeController(IBooksService booksService)
         {
             _booksService = booksService;
         }

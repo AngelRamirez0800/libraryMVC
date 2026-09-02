@@ -11,10 +11,10 @@ namespace libraryMVC.Controllers
 {
     public class BooksController : Controller
     {
-        private readonly BooksService _bookService;
-        private readonly AuthorsService _authorService;
+        private readonly IBooksService _bookService;
+        private readonly IAuthorsService _authorService;
 
-        public BooksController(BooksService bookService, AuthorsService authorService)
+        public BooksController(IBooksService bookService, IAuthorsService authorService)
         {
             _bookService = bookService;
             _authorService = authorService;
@@ -45,25 +45,21 @@ namespace libraryMVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                book.CreatedAt = DateTime.Now;
-                await _bookService.AddAsync(book);
-
-                if (selectedAuthorIds != null && selectedAuthorIds.Count > 0)
-                {
-                    await _bookService.UpdateBookAuthorsAsync(book.Id, selectedAuthorIds);
-                }
-
                 if (images != null && images.Count > 0)
                 {
                     try
                     {
-                        await _bookService.AddImagesToBookAsync(book.Id, images);
+                        await _bookService.CreateAsync(book, selectedAuthorIds, images);
                     }
                     catch (Exception ex)
                     {
                         TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
                         return RedirectToAction(nameof(Edit), new { id = book.Id });
                     }
+                }
+                else
+                {
+                    await _bookService.CreateAsync(book, selectedAuthorIds, null);
                 }
 
                 TempData["Success"] = "Libro creado correctamente.";
@@ -89,30 +85,16 @@ namespace libraryMVC.Controllers
             var targetId = id != Guid.Empty ? id : book.Id;
             if (targetId == Guid.Empty) return NotFound();
 
-            var existingBook = await _bookService.GetByIdWithDetailsAsync(targetId);
-            if (existingBook == null) return NotFound();
-
-            existingBook.Isbn = book.Isbn;
-            existingBook.Title = book.Title;
-            existingBook.Summary = book.Summary;
-            
-            if (book.IsActive)
-            {
-                existingBook.Activate();
-            }
-            else
-            {
-                existingBook.Deactivate();
-            }
-
-            await _bookService.UpdateSync(existingBook);
-            await _bookService.UpdateBookAuthorsAsync(targetId, selectedAuthorIds ?? new List<Guid>());
-
             if (images != null && images.Count > 0)
             {
                 try
                 {
-                    await _bookService.AddImagesToBookAsync(targetId, images);
+                    var updatedBook = await _bookService.UpdateAsync(
+                        targetId,
+                        book,
+                        selectedAuthorIds ?? new List<Guid>(),
+                        images);
+                    if (updatedBook == null) return NotFound();
                     TempData["Success"] = $"Libro, autores e imágenes ({images.Count}) actualizados correctamente.";
                 }
                 catch (Exception ex)
@@ -122,6 +104,12 @@ namespace libraryMVC.Controllers
             }
             else
             {
+                var updatedBook = await _bookService.UpdateAsync(
+                    targetId,
+                    book,
+                    selectedAuthorIds ?? new List<Guid>(),
+                    null);
+                if (updatedBook == null) return NotFound();
                 TempData["Success"] = "Libro y autores actualizados correctamente.";
             }
 

@@ -2,6 +2,7 @@ using libraryMVC.Data;
 using libraryMVC.Data.Repositories;
 using libraryMVC.Interfaces;
 using libraryMVC.Services;
+using libraryMVC.Data.Storage;
 using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -19,12 +20,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 
-builder.Services.AddScoped<BooksRepository>();
-builder.Services.AddScoped<AuthorsRepository>();
+builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
+builder.Services.AddScoped<IBooksRepository, BooksRepository>();
 
-builder.Services.AddScoped<BooksService>();
-builder.Services.AddScoped<AuthorsService>();
-builder.Services.AddScoped<BookImageService>();
+builder.Services.AddScoped<IAuthorsService, AuthorsService>();
+builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<IBookImageService, BookImageService>();
+builder.Services.AddScoped<IBookImageStorage, LocalBookImageStorage>();
 
 var app = builder.Build();
 

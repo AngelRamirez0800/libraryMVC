@@ -10,10 +10,10 @@ namespace libraryMVC.Controllers
 {
     public class AuthorsController : Controller
     {
-        private readonly AuthorsService _authorService;
-        private readonly BooksService _bookService;
+        private readonly IAuthorsService _authorService;
+        private readonly IBooksService _bookService;
 
-        public AuthorsController(AuthorsService authorService, BooksService bookService)
+        public AuthorsController(IAuthorsService authorService, IBooksService bookService)
         {
             _authorService = authorService;
             _bookService = bookService;
@@ -44,14 +44,7 @@ namespace libraryMVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                author.CreatedAt = DateTime.Now;
-                await _authorService.AddAsync(author);
-
-                if (selectedBookIds != null && selectedBookIds.Count > 0)
-                {
-                    await _authorService.UpdateAuthorBooksAsync(author.Id, selectedBookIds);
-                }
-
+                await _authorService.CreateAsync(author, selectedBookIds);
                 TempData["Success"] = "Autor creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -76,25 +69,11 @@ namespace libraryMVC.Controllers
             var targetId = id != Guid.Empty ? id : author.Id;
             if (targetId == Guid.Empty) return NotFound();
 
-            var existingAuthor = await _authorService.GetByIdWithBooksAsync(targetId);
-            if (existingAuthor == null) return NotFound();
-
-            existingAuthor.FirstName = author.FirstName;
-            existingAuthor.LastName = author.LastName;
-            existingAuthor.Nationality = author.Nationality;
-            existingAuthor.BirthDate = author.BirthDate;
-
-            if (author.IsActive)
-            {
-                existingAuthor.Activate();
-            }
-            else
-            {
-                existingAuthor.Deactivate();
-            }
-
-            await _authorService.UpdateSync(existingAuthor);
-            await _authorService.UpdateAuthorBooksAsync(targetId, selectedBookIds ?? new List<Guid>());
+            var updatedAuthor = await _authorService.UpdateAsync(
+                targetId,
+                author,
+                selectedBookIds ?? new List<Guid>());
+            if (updatedAuthor == null) return NotFound();
 
             TempData["Success"] = "Autor y libros asociados actualizados correctamente.";
             return RedirectToAction(nameof(Edit), new { id = targetId });
