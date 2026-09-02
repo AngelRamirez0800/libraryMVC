@@ -7,13 +7,16 @@ namespace libraryMVC.Services
     {
         private readonly IBookImageStorage _storage;
         private readonly IBookImageRepository _repository;
-        private readonly string[] _allowedExtensions = { ".webp", ".jpg", ".jpeg", ".png" };
-        private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+        private readonly IImageFileValidator _validator;
 
-        public BookImageService(IBookImageStorage storage, IBookImageRepository repository)
+        public BookImageService(
+            IBookImageStorage storage,
+            IBookImageRepository repository,
+            IImageFileValidator validator)
         {
             _storage = storage;
             _repository = repository;
+            _validator = validator;
         }
 
         public async Task AddToBookAsync(Guid bookId, ICollection<IFormFile> imageFiles)
@@ -23,7 +26,7 @@ namespace libraryMVC.Services
 
             foreach (var imageFile in imageFiles)
             {
-                ValidateImageFile(imageFile);
+                _validator.Validate(imageFile);
                 var storedImage = await _storage.SaveAsync(bookId, imageFile);
 
                 var bookImage = new BookImage(
@@ -47,17 +50,5 @@ namespace libraryMVC.Services
             _storage.Delete(bookImage);
         }
 
-        private void ValidateImageFile(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-                throw new ArgumentException("El archivo de imagen es requerido.");
-
-            if (file.Length > MaxFileSize)
-                throw new ArgumentException($"El archivo no debe exceder {MaxFileSize / (1024 * 1024)}MB.");
-
-            string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!_allowedExtensions.Contains(extension))
-                throw new ArgumentException("Solo se permiten archivos: .webp, .jpg, .jpeg, .png");
-        }
     }
 }
