@@ -1,4 +1,4 @@
-﻿namespace libraryMVC.Models
+namespace libraryMVC.Models
 {
     public class Book : Entity<Guid>
     {
@@ -10,7 +10,10 @@
         {
             Isbn = isbn;
             UpdateDetails(isbn, title, summary);
-            if (!isActive) Deactivate();
+            if (!isActive)
+            {
+                Deactivate();
+            }
         }
 
         public string Isbn { get; private set; } = string.Empty;

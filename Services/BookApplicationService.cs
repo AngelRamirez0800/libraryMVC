@@ -1,5 +1,5 @@
-using libraryMVC.Interfaces;
 using libraryMVC.DTOs;
+using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -32,7 +32,9 @@ namespace libraryMVC.Services
             await _authors.UpdateAsync(book.Id, authorIds ?? Enumerable.Empty<Guid>());
 
             if (images != null && images.Count > 0)
+            {
                 await _images.AddToBookAsync(book.Id, images);
+            }
 
             return book;
         }
@@ -44,20 +46,29 @@ namespace libraryMVC.Services
             ICollection<IFormFile>? images)
         {
             var existingBook = await _books.GetByIdAsync(id);
-            if (existingBook == null) return null;
+            if (existingBook == null)
+            {
+                return null;
+            }
 
             existingBook.UpdateDetails(input.Isbn, input.Title, input.Summary);
 
             if (input.IsActive)
+            {
                 existingBook.Activate();
+            }
             else
+            {
                 existingBook.Deactivate();
+            }
 
             await _books.UpdateAsync(existingBook);
             await _authors.UpdateAsync(id, authorIds);
 
             if (images != null && images.Count > 0)
+            {
                 await _images.AddToBookAsync(id, images);
+            }
 
             return existingBook;
         }

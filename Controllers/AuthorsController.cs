@@ -1,11 +1,11 @@
-using libraryMVC.Interfaces;
-using libraryMVC.DTOs;
-using libraryMVC.Models;
-using libraryMVC.Services;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using libraryMVC.DTOs;
+using libraryMVC.Interfaces;
+using libraryMVC.Models;
+using libraryMVC.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace libraryMVC.Controllers
 {
@@ -37,7 +37,11 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Details(Guid id)
         {
             var author = await _authorQueries.GetByIdWithBooksAsync(id);
-            if (author == null) return NotFound();
+            if (author == null)
+            {
+                return NotFound();
+            }
+
             return View(author);
         }
 
@@ -65,7 +69,10 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Edit(Guid id)
         {
             var author = await _authorQueries.GetByIdWithBooksAsync(id);
-            if (author == null) return NotFound();
+            if (author == null)
+            {
+                return NotFound();
+            }
 
             ViewBag.Books = await _bookQueries.GetAllAsync();
             return View(author);
@@ -76,16 +83,25 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Edit(Guid id, AuthorInput author, List<Guid>? selectedBookIds)
         {
             var targetId = id != Guid.Empty ? id : author.Id;
-            if (targetId == Guid.Empty) return NotFound();
+            if (targetId == Guid.Empty)
+            {
+                return NotFound();
+            }
 
             var updatedAuthor = await _authorApplication.UpdateAsync(
                 targetId,
                 author,
                 selectedBookIds ?? new List<Guid>());
-            if (updatedAuthor == null) return NotFound();
+            if (updatedAuthor == null)
+            {
+                return NotFound();
+            }
 
             TempData["Success"] = "Autor y libros asociados actualizados correctamente.";
-            return RedirectToAction(nameof(Edit), new { id = targetId });
+            return RedirectToAction(nameof(Edit), new
+            {
+                id = targetId
+            });
         }
 
         [HttpPost]

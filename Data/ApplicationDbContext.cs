@@ -1,6 +1,6 @@
-﻿using libraryMVC.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
+using libraryMVC.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace libraryMVC.Data
 {
@@ -11,9 +11,18 @@ namespace libraryMVC.Data
         {
         }
 
-        public DbSet<Book> Books { get; set; }
-        public DbSet<Author> Authors { get; set; }
-        public DbSet<BookImage> BookImages { get; set; }
+        public required DbSet<Book> Books
+        {
+            get; set;
+        }
+        public required DbSet<Author> Authors
+        {
+            get; set;
+        }
+        public required DbSet<BookImage> BookImages
+        {
+            get; set;
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

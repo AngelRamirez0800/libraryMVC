@@ -26,7 +26,10 @@ namespace libraryMVC.Data.Storage
 
             int imageNumber = Directory.GetFiles(bookImagesDirectory).Length + 1;
             string extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
-            if (string.IsNullOrEmpty(extension)) extension = ".webp";
+            if (string.IsNullOrEmpty(extension))
+            {
+                extension = ".webp";
+            }
 
             string fileName = $"{imageNumber:D2}{extension}";
             string filePath = Path.Combine(bookImagesDirectory, fileName);
@@ -49,7 +52,9 @@ namespace libraryMVC.Data.Storage
                 bookImage.ImagePath.TrimStart('/'));
 
             if (File.Exists(filePath))
+            {
                 File.Delete(filePath);
+            }
 
             string? directoryPath = Path.GetDirectoryName(filePath);
             if (directoryPath != null &&

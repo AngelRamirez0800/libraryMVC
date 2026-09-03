@@ -1,4 +1,4 @@
-﻿namespace libraryMVC.Models
+namespace libraryMVC.Models
 {
     public class Author : Entity<Guid>
     {
@@ -9,13 +9,19 @@
         public Author(string firstName, string lastName, string nationality, DateTime birthDate, bool isActive = true)
         {
             UpdateDetails(firstName, lastName, nationality, birthDate);
-            if (!isActive) Deactivate();
+            if (!isActive)
+            {
+                Deactivate();
+            }
         }
 
         public String FirstName { get; private set; } = String.Empty;
         public String LastName { get; private set; } = String.Empty;
         public String Nationality { get; private set; } = String.Empty;
-        public DateTime BirthDate { get; private set; }
+        public DateTime BirthDate
+        {
+            get; private set;
+        }
 
         private readonly List<Book> _books = new();
 

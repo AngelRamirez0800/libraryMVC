@@ -16,12 +16,21 @@ namespace libraryMVC.Models
             MarkCreated();
         }
 
-        public Guid BookId { get; private set; }
+        public Guid BookId
+        {
+            get; private set;
+        }
         public Book Book { get; private set; } = null!;
         public string ImagePath { get; private set; } = string.Empty;
-        public int ImageNumber { get; private set; }
+        public int ImageNumber
+        {
+            get; private set;
+        }
         public string OriginalFileName { get; private set; } = string.Empty;
-        public long FileSize { get; private set; }
+        public long FileSize
+        {
+            get; private set;
+        }
 
         public bool IsPrimary => ImageNumber == 1;
         public DateTime UploadedAt => CreatedAt;

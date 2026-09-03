@@ -1,12 +1,12 @@
-using libraryMVC.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using libraryMVC.DTOs;
+using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace libraryMVC.Controllers
 {
@@ -38,7 +38,11 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Details(Guid id)
         {
             var book = await _bookService.GetByIdWithDetailsAsync(id);
-            if (book == null) return NotFound();
+            if (book == null)
+            {
+                return NotFound();
+            }
+
             return View(book);
         }
 
@@ -67,14 +71,21 @@ namespace libraryMVC.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
-                return RedirectToAction(nameof(Edit), new { id = book.Id });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = book.Id
+                });
             }
         }
 
         public async Task<IActionResult> Edit(Guid id)
         {
             var book = await _bookService.GetByIdWithDetailsAsync(id);
-            if (book == null) return NotFound();
+            if (book == null)
+            {
+                return NotFound();
+            }
+
             ViewBag.Authors = await _authorService.GetAllAsync();
             return View(book);
         }
@@ -84,7 +95,10 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
         {
             var targetId = id != Guid.Empty ? id : book.Id;
-            if (targetId == Guid.Empty) return NotFound();
+            if (targetId == Guid.Empty)
+            {
+                return NotFound();
+            }
 
             try
             {
@@ -93,7 +107,10 @@ namespace libraryMVC.Controllers
                     book,
                     selectedAuthorIds ?? new List<Guid>(),
                     images);
-                if (updatedBook == null) return NotFound();
+                if (updatedBook == null)
+                {
+                    return NotFound();
+                }
 
                 TempData["Success"] = images != null && images.Count > 0
                     ? $"Libro, autores e imágenes ({images.Count}) actualizados correctamente."
@@ -104,7 +121,10 @@ namespace libraryMVC.Controllers
                 TempData["Error"] = "Información y autores guardados, pero hubo un error con las imágenes: " + ex.Message;
             }
 
-            return RedirectToAction(nameof(Edit), new { id = targetId });
+            return RedirectToAction(nameof(Edit), new
+            {
+                id = targetId
+            });
         }
 
         [HttpPost]
@@ -130,17 +150,26 @@ namespace libraryMVC.Controllers
                 if (images == null || images.Count == 0)
                 {
                     TempData["Error"] = "Debes seleccionar al menos una imagen.";
-                    return RedirectToAction(nameof(Edit), new { id });
+                    return RedirectToAction(nameof(Edit), new
+                    {
+                        id
+                    });
                 }
 
                 await _bookApplicationService.AddImagesAsync(id, images);
                 TempData["Success"] = $"Se han subido {images.Count} imagen(es) correctamente.";
-                return RedirectToAction(nameof(Edit), new { id });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id
+                });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error al subir imágenes: {ex.Message}";
-                return RedirectToAction(nameof(Edit), new { id });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id
+                });
             }
         }
 
@@ -152,12 +181,18 @@ namespace libraryMVC.Controllers
             {
                 await _bookApplicationService.RemoveImageAsync(imageId);
                 TempData["Success"] = "Imagen eliminada correctamente.";
-                return RedirectToAction(nameof(Edit), new { id = bookId });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = bookId
+                });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error al eliminar imagen: {ex.Message}";
-                return RedirectToAction(nameof(Edit), new { id = bookId });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = bookId
+                });
             }
         }
     }

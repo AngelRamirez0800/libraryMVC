@@ -1,10 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using libraryMVC.Abstractions;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace libraryMVC.Data.Repositories
 {
@@ -41,7 +41,9 @@ namespace libraryMVC.Data.Repositories
         {
             var entity = await GetByIdAsync(id);
             if (entity == null || !entity.IsActive)
+            {
                 return false;
+            }
 
             entity.Deactivate();
             _dbSet.Update(entity);
@@ -53,7 +55,9 @@ namespace libraryMVC.Data.Repositories
         {
             var entity = await GetByIdAsync(id);
             if (entity == null || entity.IsActive)
+            {
                 return false;
+            }
 
             entity.Activate();
             _dbSet.Update(entity);
@@ -70,7 +74,11 @@ namespace libraryMVC.Data.Repositories
         public virtual async Task<T?> GetByIdAsync(I id)
         {
             var entity = await _dbSet.FindAsync(id);
-            if (entity != null) return entity;
+            if (entity != null)
+            {
+                return entity;
+            }
+
             return await _dbSet.FirstOrDefaultAsync(e => EF.Property<I>(e, "Id")!.Equals(id));
         }
 

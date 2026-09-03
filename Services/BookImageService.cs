@@ -22,7 +22,9 @@ namespace libraryMVC.Services
         public async Task AddToBookAsync(Guid bookId, ICollection<IFormFile> imageFiles)
         {
             if (imageFiles == null || imageFiles.Count == 0)
+            {
                 throw new ArgumentException("Debes seleccionar al menos una imagen.");
+            }
 
             foreach (var imageFile in imageFiles)
             {
@@ -44,7 +46,9 @@ namespace libraryMVC.Services
         {
             var bookImage = await _repository.GetByIdAsync(imageId);
             if (bookImage == null)
+            {
                 throw new InvalidOperationException("Imagen no encontrada.");
+            }
 
             await _repository.RemoveAsync(bookImage);
             _storage.Delete(bookImage);

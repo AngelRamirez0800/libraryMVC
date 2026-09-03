@@ -18,7 +18,10 @@ namespace libraryMVC.Data.Repositories
                 .Include(a => a.Books)
                 .FirstOrDefaultAsync(a => a.Id == authorId);
 
-            if (author == null) return;
+            if (author == null)
+            {
+                return;
+            }
 
             var selectedBooks = await _context.Books
                 .Where(book => bookIds.Contains(book.Id))

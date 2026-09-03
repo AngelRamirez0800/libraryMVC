@@ -1,8 +1,8 @@
+using System.Diagnostics;
+using System.Threading.Tasks;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace libraryMVC.Controllers
 {

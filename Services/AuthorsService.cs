@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using libraryMVC.Interfaces;
 using libraryMVC.DTOs;
+using libraryMVC.Interfaces;
 using libraryMVC.Models;
 
 
@@ -25,12 +25,18 @@ namespace libraryMVC.Services
         {
             var author = new Author();
             author.UpdateDetails(input.FirstName, input.LastName, input.Nationality, input.BirthDate);
-            if (!input.IsActive) author.Deactivate();
+            if (!input.IsActive)
+            {
+                author.Deactivate();
+            }
+
             author.MarkCreated();
             await AddAsync(author);
 
             if (bookIds != null)
+            {
                 await _authorBookService.UpdateAsync(author.Id, bookIds);
+            }
 
             return author;
         }
@@ -38,14 +44,21 @@ namespace libraryMVC.Services
         public async Task<Author?> UpdateAsync(Guid id, AuthorInput input, IEnumerable<Guid> bookIds)
         {
             var existingAuthor = await GetByIdWithBooksAsync(id);
-            if (existingAuthor == null) return null;
+            if (existingAuthor == null)
+            {
+                return null;
+            }
 
             existingAuthor.UpdateDetails(input.FirstName, input.LastName, input.Nationality, input.BirthDate);
 
             if (input.IsActive)
+            {
                 existingAuthor.Activate();
+            }
             else
+            {
                 existingAuthor.Deactivate();
+            }
 
             await UpdateAsync(existingAuthor);
             await _authorBookService.UpdateAsync(id, bookIds);
