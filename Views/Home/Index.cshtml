@@ -1,8 +1,158 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model IEnumerable<libraryMVC.Models.Book>
+
+@{
+    ViewData["Title"] = "Virtual Library";
 }
 
-<div class="text-center">
-    <h1>Sistema de Gestión de Biblioteca</h1>
-    <p>Bienvenidos al sistema desarrollado con ASP.NET CORE MVC.</p>
+<!-- Hero Banner (Bootstrap Header) -->
+<div class="hero-banner mb-4 text-white">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-2">UEES Virtual Library</h1>
+            <p class="lead mb-4">
+                Welcome to the digital library management system. Explore our book catalog, view author biographies, and manage your reading services.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="Books" asp-action="Index" class="btn btn-light btn-lg shadow-sm">
+                    <i class="bi bi-book me-2 text-primary"></i> Explore Books
+                </a>
+                <a asp-controller="Authors" asp-action="Index" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-people me-2"></i> View Authors
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block text-center">
+            <i class="bi bi-journal-bookmark-fill display-1 text-white opacity-75"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Dynamic Featured Books Carousel (Actividad 5: Bootstrap Carousel with DB Data) -->
+<div class="card shadow-sm border-0 mb-5 overflow-hidden">
+    <div class="card-body p-0">
+        <div id="carouselFeaturedBooks" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+            @if (Model != null && Model.Any())
+            {
+                var booksList = Model.ToList();
+                <div class="carousel-indicators">
+                    @for (int i = 0; i < booksList.Count; i++)
+                    {
+                        <button type="button" data-bs-target="#carouselFeaturedBooks" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")" aria-label="Slide @(i + 1)"></button>
+                    }
+                </div>
+                <div class="carousel-inner rounded-bottom">
+                    @for (int i = 0; i < booksList.Count; i++)
+                    {
+                        var book = booksList[i];
+                        var primaryImage = book.Images?.FirstOrDefault();
+                        var imagePath = primaryImage != null ? $"/{primaryImage.ImagePath.TrimStart('/')}" : null;
+                        var authorsText = book.Authors != null && book.Authors.Any()
+                            ? string.Join(", ", book.Authors.Select(a => $"{a.FirstName} {a.LastName}"))
+                            : null;
+
+                        <div class="carousel-item @(i == 0 ? "active" : "")" style="height: 380px; position: relative; overflow: hidden; background: #0f172a;">
+                            @if (!string.IsNullOrEmpty(imagePath))
+                            {
+                                <img src="@imagePath" class="d-block w-100 h-100" style="object-fit: cover; object-position: center;" alt="@book.Title" />
+                            }
+                            else
+                            {
+                                <div class="w-100 h-100" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);"></div>
+                            }
+
+                            <!-- Full Slide Dark Transparent Overlay -->
+                            <div class="carousel-overlay">
+                                <div class="carousel-overlay-content text-white">
+                                    <span class="badge bg-warning text-dark mb-2 px-3 py-1 fw-semibold">
+                                        <i class="bi bi-star-fill me-1"></i>Featured Selection
+                                    </span>
+                                    <h2 class="display-6 fw-bold mb-1 text-white">@book.Title</h2>
+                                    @if (!string.IsNullOrEmpty(authorsText))
+                                    {
+                                        <p class="fs-5 text-info mb-2">
+                                            <i class="bi bi-person-fill me-1"></i>By @authorsText
+                                        </p>
+                                    }
+                                    <p class="lead text-light mb-3 line-clamp-3 opacity-90" style="max-width: 750px;">
+                                        @(string.IsNullOrWhiteSpace(book.Summary) ? "No description available for this featured title." : book.Summary)
+                                    </p>
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="btn btn-light btn-lg shadow-sm">
+                                        <i class="bi bi-eye me-2 text-primary"></i> View Book Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-book fs-1 d-block mb-2"></i>
+                    <p class="mb-0">No books found to display in the featured carousel.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Grid & Cards (Actividades 1 & 3: Library Services) -->
+<h4 class="mb-3 fw-semibold"><i class="bi bi-grid-fill me-2 text-primary"></i>Library Services</h4>
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 feature-card">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-book fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">Book Catalog</h5>
+                <p class="card-text text-muted small">
+                    Access the complete inventory of titles, ISBNs, summaries, and cover images.
+                </p>
+                <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary btn-sm">View Catalog</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 feature-card">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-people fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">Author Directory</h5>
+                <p class="card-text text-muted small">
+                    Discover biographies, nationalities, and linked bibliography of our authors.
+                </p>
+                <a asp-controller="Authors" asp-action="Index" class="btn btn-outline-success btn-sm">View Authors</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 feature-card">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-bookmark-check fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">Loans & Reservations</h5>
+                <p class="card-text text-muted small">
+                    Manage physical book requests and digital loans for students and faculty.
+                </p>
+                <a asp-controller="Home" asp-action="Prestamos" class="btn btn-outline-warning btn-sm">Loans</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 feature-card">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-info bg-opacity-10 text-info d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-tags fs-2"></i>
+                </div>
+                <h5 class="card-title fw-bold">Categories</h5>
+                <p class="card-text text-muted small">
+                    Explore literature organized by genres: Fiction, History, Science, Essay, and more.
+                </p>
+                <a asp-controller="Home" asp-action="Categorias" class="btn btn-outline-info btn-sm">Categories</a>
+            </div>
+        </div>
+    </div>
 </div>

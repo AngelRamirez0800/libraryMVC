@@ -1,95 +1,120 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using libraryMVC.DTOs;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace libraryMVC.Controllers
 {
     public class AuthorsController : Controller
     {
-        private readonly AuthorsService _authorService;
+        private readonly IAuthorQueries _authorQueries;
+        private readonly IAuthorApplicationService _authorApplication;
+        private readonly IAuthorLifecycle _authorLifecycle;
+        private readonly IBookQueries _bookQueries;
 
-        public AuthorsController(AuthorsService authorService)
+        public AuthorsController(
+            IAuthorQueries authorQueries,
+            IAuthorApplicationService authorApplication,
+            IAuthorLifecycle authorLifecycle,
+            IBookQueries bookQueries)
         {
-            _authorService = authorService;
+            _authorQueries = authorQueries;
+            _authorApplication = authorApplication;
+            _authorLifecycle = authorLifecycle;
+            _bookQueries = bookQueries;
         }
 
         public async Task<IActionResult> Index()
         {
-            var authors = await _authorService.GetAllAsync();
+            var authors = await _authorQueries.GetAllAsync();
             return View(authors);
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
-            var author = await _authorService.GetByIdAsync(id);
-            if (author == null) return NotFound();
+            var author = await _authorQueries.GetByIdWithBooksAsync(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+
             return View(author);
         }
 
-        public IActionResult Create() => View();
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.Books = await _bookQueries.GetAllAsync();
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Author author)
+        public async Task<IActionResult> Create(AuthorInput author, List<Guid>? selectedBookIds)
         {
             if (ModelState.IsValid)
             {
-                author.CreatedAt = DateTime.Now;
-                await _authorService.AddAsync(author);
+                await _authorApplication.CreateAsync(author, selectedBookIds);
+                TempData["Success"] = "Autor creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(author);
+
+            ViewBag.Books = await _bookQueries.GetAllAsync();
+            return View(new Author(author.FirstName, author.LastName, author.Nationality, author.BirthDate, author.IsActive));
         }
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            var author = await _authorService.GetByIdAsync(id);
-            if (author == null) return NotFound();
+            var author = await _authorQueries.GetByIdWithBooksAsync(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Books = await _bookQueries.GetAllAsync();
             return View(author);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Author author)
+        public async Task<IActionResult> Edit(Guid id, AuthorInput author, List<Guid>? selectedBookIds)
         {
             var targetId = id != Guid.Empty ? id : author.Id;
-            if (targetId == Guid.Empty) return NotFound();
-
-            var existingAuthor = await _authorService.GetByIdAsync(targetId);
-            if (existingAuthor == null) return NotFound();
-
-            existingAuthor.FirstName = author.FirstName;
-            existingAuthor.LastName = author.LastName;
-            existingAuthor.Nationality = author.Nationality;
-            existingAuthor.BirthDate = author.BirthDate;
-
-            if (author.IsActive)
+            if (targetId == Guid.Empty)
             {
-                existingAuthor.Activate();
-            }
-            else
-            {
-                existingAuthor.Deactivate();
+                return NotFound();
             }
 
-            await _authorService.UpdateSync(existingAuthor);
-            return RedirectToAction(nameof(Index));
+            var updatedAuthor = await _authorApplication.UpdateAsync(
+                targetId,
+                author,
+                selectedBookIds ?? new List<Guid>());
+            if (updatedAuthor == null)
+            {
+                return NotFound();
+            }
+
+            TempData["Success"] = "Autor y libros asociados actualizados correctamente.";
+            return RedirectToAction(nameof(Edit), new
+            {
+                id = targetId
+            });
         }
 
         [HttpPost]
         public async Task<IActionResult> Deactivate(Guid id)
         {
-            await _authorService.DeleteAsync(id);
+            await _authorLifecycle.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> Restore(Guid id)
         {
-            await _authorService.RestoreAsync(id);
+            await _authorLifecycle.RestoreAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

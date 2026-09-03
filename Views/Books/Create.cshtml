@@ -2,33 +2,73 @@
 
 @{
     ViewData["Title"] = "Create Book";
+    var authorsList = ViewBag.Authors as IEnumerable<libraryMVC.Models.Author>;
 }
 
-<h2 class="mb-3">Create Book</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">Create Book</h2>
+        <p class="text-muted small mb-0">Create a new book and assign authors and images</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-6">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <form asp-action="Create" method="post">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="All" class="text-danger mb-3"></div>
                     
                     <div class="form-group mb-3">
-                        <label asp-for="Isbn" class="control-label fw-semibold"></label>
+                        <label asp-for="Isbn" class="control-label fw-semibold">ISBN</label>
                         <input asp-for="Isbn" class="form-control" placeholder="e.g. 978-3-16-148410-0" />
                         <span asp-validation-for="Isbn" class="text-danger"></span>
                     </div>
                     
                     <div class="form-group mb-3">
-                        <label asp-for="Title" class="control-label fw-semibold"></label>
+                        <label asp-for="Title" class="control-label fw-semibold">Title</label>
                         <input asp-for="Title" class="form-control" placeholder="e.g. One Hundred Years of Solitude" />
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
                     
                     <div class="form-group mb-3">
-                        <label asp-for="Summary" class="control-label fw-semibold"></label>
+                        <label asp-for="Summary" class="control-label fw-semibold">Summary</label>
                         <textarea asp-for="Summary" class="form-control" rows="3" placeholder="Brief summary of the book..."></textarea>
                         <span asp-validation-for="Summary" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="selectedAuthorIds" class="control-label fw-semibold">Authors</label>
+                        <select id="selectedAuthorIds" name="selectedAuthorIds" class="form-select" multiple size="4">
+                            @if (authorsList != null && authorsList.Any())
+                            {
+                                foreach (var author in authorsList)
+                                {
+                                    <option value="@author.Id">@author.FirstName @author.LastName (@(string.IsNullOrEmpty(author.Nationality) ? "N/A" : author.Nationality))</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">
+                            Hold down the <kbd>Ctrl</kbd> (or <kbd>Cmd</kbd>) key to select multiple authors.
+                        </small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="images" class="control-label fw-semibold">Book Images (Optional)</label>
+                        <input type="file" 
+                               id="images" 
+                               name="images" 
+                               multiple 
+                               accept=".jpg,.jpeg,.png,.webp" 
+                               class="form-control" />
+                        <small class="form-text text-muted">
+                            Allowed formats: JPG, PNG, WEBP (max 5MB each).
+                        </small>
                     </div>
                     
                     <div class="form-group mt-4">
@@ -44,4 +84,3 @@
         </div>
     </div>
 </div>
-

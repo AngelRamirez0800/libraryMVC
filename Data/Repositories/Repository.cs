@@ -1,15 +1,18 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using libraryMVC.Abstractions;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace libraryMVC.Data.Repositories
 {
-    public class Repository<T, I> : IRepository<T, I>
-        where T : Entity<I> 
+    public class Repository<T, I> :
+        IEntityReaderRepository<T, I>,
+        IEntityWriterRepository<T, I>,
+        IEntityLifecycleRepository<T, I>
+        where T : Entity<I>
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;
@@ -27,7 +30,7 @@ namespace libraryMVC.Data.Repositories
             return entity;
         }
 
-        public virtual async Task<T> UpdateSync(T entity)
+        public virtual async Task<T> UpdateAsync(T entity)
         {
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
@@ -38,7 +41,9 @@ namespace libraryMVC.Data.Repositories
         {
             var entity = await GetByIdAsync(id);
             if (entity == null || !entity.IsActive)
+            {
                 return false;
+            }
 
             entity.Deactivate();
             _dbSet.Update(entity);
@@ -50,7 +55,9 @@ namespace libraryMVC.Data.Repositories
         {
             var entity = await GetByIdAsync(id);
             if (entity == null || entity.IsActive)
+            {
                 return false;
+            }
 
             entity.Activate();
             _dbSet.Update(entity);
@@ -67,7 +74,11 @@ namespace libraryMVC.Data.Repositories
         public virtual async Task<T?> GetByIdAsync(I id)
         {
             var entity = await _dbSet.FindAsync(id);
-            if (entity != null) return entity;
+            if (entity != null)
+            {
+                return entity;
+            }
+
             return await _dbSet.FirstOrDefaultAsync(e => EF.Property<I>(e, "Id")!.Equals(id));
         }
 

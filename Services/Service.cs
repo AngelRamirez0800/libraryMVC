@@ -1,28 +1,39 @@
-﻿using libraryMVC.Abstractions;
-using libraryMVC.Interfaces;
-using libraryMVC.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using libraryMVC.Abstractions;
+using libraryMVC.Interfaces;
+using libraryMVC.Models;
 
 namespace libraryMVC.Services
 {
-    public class Service<T, I> : IService<T, I> where T : Entity<I>
+    public class Service<T, I> :
+        IEntityReaderService<T, I>,
+        IEntityWriterService<T, I>,
+        IEntityLifecycleService<T, I>
+        where T : Entity<I>
     {
-        private readonly IRepository<T, I> _repository;
+        private readonly IEntityReaderRepository<T, I> _reader;
+        private readonly IEntityWriterRepository<T, I> _writer;
+        private readonly IEntityLifecycleRepository<T, I> _lifecycle;
 
-        public Service(IRepository<T, I> repository)
+        public Service(
+            IEntityReaderRepository<T, I> reader,
+            IEntityWriterRepository<T, I> writer,
+            IEntityLifecycleRepository<T, I> lifecycle)
         {
-            _repository = repository;
+            _reader = reader;
+            _writer = writer;
+            _lifecycle = lifecycle;
         }
 
-        public async Task<T> AddAsync(T entity) => await _repository.AddAsync(entity);
-        public async Task<T> UpdateSync(T entity) => await _repository.UpdateSync(entity);
-        public async Task<bool> DeleteAsync(I id) => await _repository.DeleteAsync(id);
-        public async Task<bool> RestoreAsync(I id) => await _repository.RestoreAsync(id);
-        public async Task<bool> AlreadyExistsAsync(I id) => await _repository.AlreadyExistsAsync(id);
-        public async Task<T?> GetByIdAsync(I id) => await _repository.GetByIdAsync(id);
-        public async Task<IList<T?>> GetAllAsync() => await _repository.GetAllAsync();
-        public async Task<IList<T?>> GetAllActiveAsync() => await _repository.GetAllActiveAsync();
-        public async Task<IList<T?>> GetAllInactiveAsync() => await _repository.GetAllInactiveAsync();
+        public async Task<T> AddAsync(T entity) => await _writer.AddAsync(entity);
+        public async Task<T> UpdateAsync(T entity) => await _writer.UpdateAsync(entity);
+        public async Task<bool> DeleteAsync(I id) => await _lifecycle.DeleteAsync(id);
+        public async Task<bool> RestoreAsync(I id) => await _lifecycle.RestoreAsync(id);
+        public async Task<bool> AlreadyExistsAsync(I id) => await _lifecycle.AlreadyExistsAsync(id);
+        public async Task<T?> GetByIdAsync(I id) => await _reader.GetByIdAsync(id);
+        public async Task<IList<T?>> GetAllAsync() => await _reader.GetAllAsync();
+        public async Task<IList<T?>> GetAllActiveAsync() => await _reader.GetAllActiveAsync();
+        public async Task<IList<T?>> GetAllInactiveAsync() => await _reader.GetAllInactiveAsync();
     }
 }

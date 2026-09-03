@@ -2,9 +2,20 @@
 
 @{
     ViewData["Title"] = "Create Author";
+    var booksList = ViewBag.Books as IEnumerable<libraryMVC.Models.Book>;
 }
 
-<h2 class="mb-3">Create Author</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">Create Author</h2>
+        <p class="text-muted small mb-0">Create a new author and assign books</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-6">
@@ -36,6 +47,22 @@
                         <input asp-for="BirthDate" type="date" class="form-control" />
                         <span asp-validation-for="BirthDate" class="text-danger"></span>
                     </div>
+
+                    <div class="form-group mb-3">
+                        <label for="selectedBookIds" class="control-label fw-semibold">Books (Optional)</label>
+                        <select id="selectedBookIds" name="selectedBookIds" class="form-select" multiple size="4">
+                            @if (booksList != null && booksList.Any())
+                            {
+                                foreach (var book in booksList)
+                                {
+                                    <option value="@book.Id">@book.Title (ISBN: @book.Isbn)</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">
+                            Hold down the <kbd>Ctrl</kbd> (or <kbd>Cmd</kbd>) key to select multiple books.
+                        </small>
+                    </div>
                     
                     <div class="form-group mt-4">
                         <button type="submit" class="btn btn-primary shadow-sm me-2">
@@ -50,4 +77,3 @@
         </div>
     </div>
 </div>
-

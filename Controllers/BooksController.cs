@@ -1,19 +1,32 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using libraryMVC.DTOs;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace libraryMVC.Controllers
 {
     public class BooksController : Controller
     {
-        private readonly BooksService _bookService;
+        private readonly IBookQueries _bookService;
+        private readonly IBookApplicationService _bookApplicationService;
+        private readonly IAuthorQueries _authorService;
+        private readonly IBookLifecycle _bookLifecycle;
 
-        public BooksController(BooksService bookService)
+        public BooksController(
+            IBookQueries bookService,
+            IBookApplicationService bookApplicationService,
+            IAuthorQueries authorService,
+            IBookLifecycle bookLifecycle)
         {
             _bookService = bookService;
+            _bookApplicationService = bookApplicationService;
+            _authorService = authorService;
+            _bookLifecycle = bookLifecycle;
         }
 
         public async Task<IActionResult> Index()
@@ -24,72 +37,163 @@ namespace libraryMVC.Controllers
 
         public async Task<IActionResult> Details(Guid id)
         {
-            var book = await _bookService.GetByIdAsync(id);
-            if (book == null) return NotFound();
+            var book = await _bookService.GetByIdWithDetailsAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
             return View(book);
         }
 
-        public IActionResult Create() => View();
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.Authors = await _authorService.GetAllAsync();
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Book book)
+        public async Task<IActionResult> Create(BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                book.CreatedAt = DateTime.Now;
-                await _bookService.AddAsync(book);
+                ViewBag.Authors = await _authorService.GetAllAsync();
+                return View(new Book(book.Isbn, book.Title, book.Summary, book.IsActive));
+            }
+
+            try
+            {
+                await _bookApplicationService.CreateAsync(book, selectedAuthorIds, images);
+                TempData["Success"] = "Libro creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(book);
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = book.Id
+                });
+            }
         }
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            var book = await _bookService.GetByIdAsync(id);
-            if (book == null) return NotFound();
+            var book = await _bookService.GetByIdWithDetailsAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Authors = await _authorService.GetAllAsync();
             return View(book);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Book book)
+        public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
         {
             var targetId = id != Guid.Empty ? id : book.Id;
-            if (targetId == Guid.Empty) return NotFound();
-
-            var existingBook = await _bookService.GetByIdAsync(targetId);
-            if (existingBook == null) return NotFound();
-
-            existingBook.Isbn = book.Isbn;
-            existingBook.Title = book.Title;
-            existingBook.Summary = book.Summary;
-            
-            if (book.IsActive)
+            if (targetId == Guid.Empty)
             {
-                existingBook.Activate();
-            }
-            else
-            {
-                existingBook.Deactivate();
+                return NotFound();
             }
 
-            await _bookService.UpdateSync(existingBook);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var updatedBook = await _bookApplicationService.UpdateAsync(
+                    targetId,
+                    book,
+                    selectedAuthorIds ?? new List<Guid>(),
+                    images);
+                if (updatedBook == null)
+                {
+                    return NotFound();
+                }
+
+                TempData["Success"] = images != null && images.Count > 0
+                    ? $"Libro, autores e imágenes ({images.Count}) actualizados correctamente."
+                    : "Libro y autores actualizados correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Información y autores guardados, pero hubo un error con las imágenes: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Edit), new
+            {
+                id = targetId
+            });
         }
 
         [HttpPost]
         public async Task<IActionResult> Deactivate(Guid id)
         {
-            await _bookService.DeleteAsync(id);
+            await _bookLifecycle.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> Restore(Guid id)
         {
-            await _bookService.RestoreAsync(id);
-            return RedirectToAction(nameof(Index)); 
+            await _bookLifecycle.RestoreAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddImages(Guid id, ICollection<IFormFile> images)
+        {
+            try
+            {
+                if (images == null || images.Count == 0)
+                {
+                    TempData["Error"] = "Debes seleccionar al menos una imagen.";
+                    return RedirectToAction(nameof(Edit), new
+                    {
+                        id
+                    });
+                }
+
+                await _bookApplicationService.AddImagesAsync(id, images);
+                TempData["Success"] = $"Se han subido {images.Count} imagen(es) correctamente.";
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al subir imágenes: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id
+                });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveImage(Guid imageId, Guid bookId)
+        {
+            try
+            {
+                await _bookApplicationService.RemoveImageAsync(imageId);
+                TempData["Success"] = "Imagen eliminada correctamente.";
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = bookId
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al eliminar imagen: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = bookId
+                });
+            }
         }
     }
 }

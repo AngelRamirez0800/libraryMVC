@@ -2,40 +2,103 @@
 
 @{
     ViewData["Title"] = "Edit Book";
+    var authorsList = ViewBag.Authors as IEnumerable<libraryMVC.Models.Author>;
+    var assignedAuthorIds = Model.Authors?.Select(a => a.Id).ToHashSet() ?? new HashSet<Guid>();
 }
 
-<h2 class="mb-3">Edit Book</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">Edit Book</h2>
+        <p class="text-muted small mb-0">Update book information, assigned authors, and images</p>
+    </div>
+    <div>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info me-2">
+            <i class="bi bi-info-circle me-1"></i> Details
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="row">
-    <div class="col-md-6">
+    <!-- Main Form Column -->
+    <div class="col-md-6 mb-4">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <form method="post">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="All" class="text-danger mb-3"></div>
                     <input type="hidden" asp-for="Id" value="@Model.Id" />
                     
                     <div class="form-group mb-3">
-                        <label asp-for="Isbn" class="control-label fw-semibold"></label>
+                        <label asp-for="Isbn" class="control-label fw-semibold">ISBN</label>
                         <input asp-for="Isbn" class="form-control" />
                         <span asp-validation-for="Isbn" class="text-danger"></span>
                     </div>
                     
                     <div class="form-group mb-3">
-                        <label asp-for="Title" class="control-label fw-semibold"></label>
+                        <label asp-for="Title" class="control-label fw-semibold">Title</label>
                         <input asp-for="Title" class="form-control" />
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
                     
                     <div class="form-group mb-3">
-                        <label asp-for="Summary" class="control-label fw-semibold"></label>
+                        <label asp-for="Summary" class="control-label fw-semibold">Summary</label>
                         <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
                         <span asp-validation-for="Summary" class="text-danger"></span>
                     </div>
                     
                     <div class="form-group form-check mb-3">
                         <label class="form-check-label">
-                            <input class="form-check-input" asp-for="IsActive" /> Active 
+                            <input class="form-check-input" asp-for="IsActive" /> Active
                         </label>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="selectedAuthorIds" class="control-label fw-semibold">Assigned Authors</label>
+                        <select id="selectedAuthorIds" name="selectedAuthorIds" class="form-select" multiple size="4">
+                            @if (authorsList != null && authorsList.Any())
+                            {
+                                foreach (var author in authorsList)
+                                {
+                                    var isSelected = assignedAuthorIds.Contains(author.Id);
+                                    <option value="@author.Id" selected="@isSelected">
+                                        @author.FirstName @author.LastName (@(string.IsNullOrEmpty(author.Nationality) ? "N/A" : author.Nationality))
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">
+                            Hold down the <kbd>Ctrl</kbd> key to select or deselect authors.
+                        </small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="images" class="control-label fw-semibold">Add New Images</label>
+                        <input type="file" 
+                               id="images" 
+                               name="images" 
+                               multiple 
+                               accept=".jpg,.jpeg,.png,.webp" 
+                               class="form-control" />
+                        <small class="form-text text-muted">
+                            Allowed formats: JPG, PNG, WEBP (max 5MB each)
+                        </small>
                     </div>
                     
                     <div class="form-group mt-4">
@@ -50,5 +113,61 @@
             </div>
         </div>
     </div>
-</div>
 
+    <!-- Existing Images Column -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 fw-semibold">
+                    Existing Images (@(Model.Images?.Count ?? 0))
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Images != null && Model.Images.Count > 0)
+                {
+                    <div class="row">
+                        @foreach (var image in Model.Images.OrderBy(i => i.ImageNumber))
+                        {
+                            <div class="col-sm-6 mb-3">
+                                <div class="card h-100 shadow-sm border">
+                                    <img src="~/@image.ImagePath.TrimStart('/')" 
+                                         class="card-img-top" 
+                                         alt="Image #@image.ImageNumber"
+                                         style="height: 160px; object-fit: cover;" />
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="fw-semibold small">Image #@image.ImageNumber</span>
+                                            @if (image.IsPrimary)
+                                            {
+                                                <span class="badge bg-success">Primary</span>
+                                            }
+                                        </div>
+                                        <small class="text-muted d-block small">
+                                            @image.FormattedFileSize
+                                        </small>
+                                    </div>
+                                    <div class="card-footer bg-light border-0 py-2">
+                                        <form asp-action="RemoveImage" 
+                                              asp-controller="Books" 
+                                              method="post" 
+                                              onsubmit="return confirm('Are you sure you want to delete this image?');">
+                                            <input type="hidden" name="imageId" value="@image.Id" />
+                                            <input type="hidden" name="bookId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted fst-italic mb-0">No images associated with this book yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
