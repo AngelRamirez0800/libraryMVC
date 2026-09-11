@@ -21,15 +21,26 @@ namespace libraryMVC.Data.Repositories
         {
             return await _context.Books
                 .Include(b => b.Authors)
+                .Include(b => b.Categories)
                 .Include(b => b.Images.OrderBy(i => i.ImageNumber))
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
+
+            public override async Task<IList<Book?>> GetAllAsync()
+            {
+                return await _context.Books
+                .Include(book => book.Authors)
+                .Include(book => book.Categories)
+                    .Cast<Book?>()
+                    .ToListAsync();
+            }
 
         public async Task<List<Book>> GetRandomFeaturedBooksAsync(int count = 3)
         {
             var activeBooks = await _context.Books
                 .Where(b => b.IsActive)
                 .Include(b => b.Authors)
+                .Include(b => b.Categories)
                 .Include(b => b.Images.OrderBy(i => i.ImageNumber))
                 .ToListAsync();
 

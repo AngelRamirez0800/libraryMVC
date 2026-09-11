@@ -1,0 +1,78 @@
+@model libraryMVC.Models.Category
+
+@{
+    ViewData["Title"] = "Edit Category";
+    var books = ViewBag.Books as IEnumerable<libraryMVC.Models.Book>;
+    var assignedBookIds = Model.Books.Select(book => book.Id).ToHashSet();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h2 class="mb-0">Edit Category</h2><p class="text-muted small mb-0">Update category information</p></div>
+    <div>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info me-2"><i class="bi bi-info-circle me-1"></i> Details</a>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0"><div class="card-body">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" />
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control" maxlength="100" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="Description" class="control-label fw-semibold"></label>
+                    <textarea asp-for="Description" class="form-control" maxlength="250" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="form-group form-check mb-3">
+                    <input class="form-check-input" asp-for="IsActive" />
+                    <label class="form-check-label" asp-for="IsActive">Active</label>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="selectedBookIds" class="control-label fw-semibold">Assigned Books</label>
+                    <select id="selectedBookIds" name="selectedBookIds" class="form-select" multiple size="4">
+                        @if (books != null)
+                        {
+                            foreach (var book in books)
+                            {
+                                <option value="@book.Id" selected="@assignedBookIds.Contains(book.Id)">@book.Title (ISBN: @book.Isbn)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary me-2">Save</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div></div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-body">
+        <h5 class="fw-semibold">Associated Books (@Model.Books.Count)</h5>
+        @if (Model.Books.Any())
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var book in Model.Books)
+                {
+                    <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="obs-link-chip"><i class="bi bi-book me-1"></i>@book.Title</a>
+                }
+            </div>
+        }
+        else
+        {
+            <span class="text-muted fst-italic">No books associated with this category.</span>
+        }
+    </div>
+</div>

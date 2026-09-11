@@ -1,0 +1,49 @@
+@model libraryMVC.Models.Category
+
+@{
+    ViewData["Title"] = "Create Category";
+    var books = ViewBag.Books as IEnumerable<libraryMVC.Models.Book>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Create Category</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0"><div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control" maxlength="100" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="Description" class="control-label fw-semibold"></label>
+                    <textarea asp-for="Description" class="form-control" maxlength="250" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="form-group form-check mb-3">
+                    <input class="form-check-input" asp-for="IsActive" />
+                    <label class="form-check-label" asp-for="IsActive">Active</label>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="selectedBookIds" class="control-label fw-semibold">Books</label>
+                    <select id="selectedBookIds" name="selectedBookIds" class="form-select" multiple size="4">
+                        @if (books != null)
+                        {
+                            foreach (var book in books)
+                            {
+                                <option value="@book.Id">@book.Title (ISBN: @book.Isbn)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary me-2"><i class="bi bi-plus-lg me-1"></i> Create</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div></div>
+    </div>
+</div>

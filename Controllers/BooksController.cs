@@ -15,17 +15,20 @@ namespace libraryMVC.Controllers
         private readonly IBookQueries _bookService;
         private readonly IBookApplicationService _bookApplicationService;
         private readonly IAuthorQueries _authorService;
+        private readonly ICategoryQueries _categoryService;
         private readonly IBookLifecycle _bookLifecycle;
 
         public BooksController(
             IBookQueries bookService,
             IBookApplicationService bookApplicationService,
             IAuthorQueries authorService,
+            ICategoryQueries categoryService,
             IBookLifecycle bookLifecycle)
         {
             _bookService = bookService;
             _bookApplicationService = bookApplicationService;
             _authorService = authorService;
+            _categoryService = categoryService;
             _bookLifecycle = bookLifecycle;
         }
 
@@ -49,32 +52,36 @@ namespace libraryMVC.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Authors = await _authorService.GetAllAsync();
+            ViewBag.Categories = await _categoryService.GetAllActiveAsync();
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
+        public async Task<IActionResult> Create(BookInput book, List<Guid>? selectedAuthorIds, List<Guid>? selectedCategoryIds, ICollection<IFormFile>? images)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Authors = await _authorService.GetAllAsync();
+                await PopulateBookOptionsAsync(selectedCategoryIds);
                 return View(new Book(book.Isbn, book.Title, book.Summary, book.IsActive));
             }
 
             try
             {
-                await _bookApplicationService.CreateAsync(book, selectedAuthorIds, images);
+                await _bookApplicationService.CreateAsync(book, selectedAuthorIds, selectedCategoryIds, images);
                 TempData["Success"] = "Libro creado correctamente.";
                 return RedirectToAction(nameof(Index));
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(nameof(selectedCategoryIds), ex.Message);
+                await PopulateBookOptionsAsync(selectedCategoryIds);
+                return View(new Book(book.Isbn, book.Title, book.Summary, book.IsActive));
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
-                return RedirectToAction(nameof(Edit), new
-                {
-                    id = book.Id
-                });
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -87,12 +94,13 @@ namespace libraryMVC.Controllers
             }
 
             ViewBag.Authors = await _authorService.GetAllAsync();
+            ViewBag.Categories = await _categoryService.GetAllActiveAsync();
             return View(book);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, ICollection<IFormFile>? images)
+        public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, List<Guid>? selectedCategoryIds, ICollection<IFormFile>? images)
         {
             var targetId = id != Guid.Empty ? id : book.Id;
             if (targetId == Guid.Empty)
@@ -106,6 +114,7 @@ namespace libraryMVC.Controllers
                     targetId,
                     book,
                     selectedAuthorIds ?? new List<Guid>(),
+                    selectedCategoryIds ?? new List<Guid>(),
                     images);
                 if (updatedBook == null)
                 {
@@ -116,6 +125,20 @@ namespace libraryMVC.Controllers
                     ? $"Libro, autores e imágenes ({images.Count}) actualizados correctamente."
                     : "Libro y autores actualizados correctamente.";
             }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(nameof(selectedCategoryIds), ex.Message);
+                var existingBook = await _bookService.GetByIdWithDetailsAsync(targetId);
+                if (existingBook == null)
+                {
+                    return NotFound();
+                }
+
+                existingBook.UpdateDetails(book.Isbn, book.Title, book.Summary);
+                ViewBag.SelectedCategoryIds = selectedCategoryIds ?? new List<Guid>();
+                await PopulateBookOptionsAsync(selectedCategoryIds);
+                return View(existingBook);
+            }
             catch (Exception ex)
             {
                 TempData["Error"] = "Información y autores guardados, pero hubo un error con las imágenes: " + ex.Message;
@@ -125,6 +148,13 @@ namespace libraryMVC.Controllers
             {
                 id = targetId
             });
+        }
+
+        private async Task PopulateBookOptionsAsync(IEnumerable<Guid>? selectedCategoryIds = null)
+        {
+            ViewBag.Authors = await _authorService.GetAllAsync();
+            ViewBag.Categories = await _categoryService.GetAllActiveAsync();
+            ViewBag.SelectedCategoryIds = selectedCategoryIds ?? Enumerable.Empty<Guid>();
         }
 
         [HttpPost]

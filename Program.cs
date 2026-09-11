@@ -4,7 +4,6 @@ using libraryMVC.Data.Storage;
 using libraryMVC.Interfaces;
 using libraryMVC.Services;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +21,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
 builder.Services.AddScoped<IBooksRepository, BooksRepository>();
+builder.Services.AddScoped<ICategoryRespository, CategoryRepository>();
 
 builder.Services.AddScoped<IAuthorsService, AuthorsService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
@@ -40,10 +40,19 @@ builder.Services.AddScoped<IImageFileValidator, ImageFileValidator>();
 builder.Services.AddScoped<IBookImageStorage, LocalBookImageStorage>();
 builder.Services.AddScoped<IBookAuthorRepository, BookAuthorRepository>();
 builder.Services.AddScoped<IBookAuthorService, BookAuthorService>();
+builder.Services.AddScoped<ICategoryBookRepository, CategoryBookRepository>();
+builder.Services.AddScoped<ICategoryBookService, CategoryBookService>();
 builder.Services.AddScoped<IAuthorBookRepository, AuthorBookRepository>();
 builder.Services.AddScoped<IAuthorBookService, AuthorBookService>();
 builder.Services.AddScoped<IBookImageRepository, BookImageRepository>();
 builder.Services.AddScoped<IBookApplicationService, BookApplicationService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryQueries>(provider =>
+    (ICategoryQueries)provider.GetRequiredService<ICategoryService>());
+builder.Services.AddScoped<ICategoryApplicationService>(provider =>
+    (ICategoryApplicationService)provider.GetRequiredService<ICategoryService>());
+builder.Services.AddScoped<ICategoryLifecycle>(provider =>
+    (ICategoryLifecycle)provider.GetRequiredService<ICategoryService>());
 
 var app = builder.Build();
 

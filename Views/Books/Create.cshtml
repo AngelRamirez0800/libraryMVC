@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Create Book";
     var authorsList = ViewBag.Authors as IEnumerable<libraryMVC.Models.Author>;
+    var categoriesList = ViewBag.Categories as IEnumerable<libraryMVC.Models.Category>;
+    var selectedCategoryIds = (ViewBag.SelectedCategoryIds as IEnumerable<Guid>)?.ToHashSet() ?? new HashSet<Guid>();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -23,19 +25,19 @@
             <div class="card-body">
                 <form asp-action="Create" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="All" class="text-danger mb-3"></div>
-                    
+
                     <div class="form-group mb-3">
                         <label asp-for="Isbn" class="control-label fw-semibold">ISBN</label>
                         <input asp-for="Isbn" class="form-control" placeholder="e.g. 978-3-16-148410-0" />
                         <span asp-validation-for="Isbn" class="text-danger"></span>
                     </div>
-                    
+
                     <div class="form-group mb-3">
                         <label asp-for="Title" class="control-label fw-semibold">Title</label>
                         <input asp-for="Title" class="form-control" placeholder="e.g. One Hundred Years of Solitude" />
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
-                    
+
                     <div class="form-group mb-3">
                         <label asp-for="Summary" class="control-label fw-semibold">Summary</label>
                         <textarea asp-for="Summary" class="form-control" rows="3" placeholder="Brief summary of the book..."></textarea>
@@ -59,18 +61,32 @@
                     </div>
 
                     <div class="form-group mb-3">
+                        <label for="selectedCategoryIds" class="control-label fw-semibold">Categories</label>
+                        <select id="selectedCategoryIds" name="selectedCategoryIds" class="form-select" multiple size="4" required>
+                            @if (categoriesList != null)
+                            {
+                                foreach (var category in categoriesList)
+                                {
+                                    <option value="@category.Id" selected="@selectedCategoryIds.Contains(category.Id)">@category.Name</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">Select at least one category.</small>
+                    </div>
+
+                    <div class="form-group mb-3">
                         <label for="images" class="control-label fw-semibold">Book Images (Optional)</label>
-                        <input type="file" 
-                               id="images" 
-                               name="images" 
-                               multiple 
-                               accept=".jpg,.jpeg,.png,.webp" 
+                        <input type="file"
+                               id="images"
+                               name="images"
+                               multiple
+                               accept=".jpg,.jpeg,.png,.webp"
                                class="form-control" />
                         <small class="form-text text-muted">
                             Allowed formats: JPG, PNG, WEBP (max 5MB each).
                         </small>
                     </div>
-                    
+
                     <div class="form-group mt-4">
                         <button type="submit" class="btn btn-primary shadow-sm me-2">
                             <i class="bi bi-plus-lg me-1"></i> Create

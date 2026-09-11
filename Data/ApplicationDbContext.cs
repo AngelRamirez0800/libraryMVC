@@ -23,7 +23,10 @@ namespace libraryMVC.Data
         {
             get; set;
         }
-
+        public required DbSet<Category> Categories
+        {
+            get; set;
+        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -45,6 +48,19 @@ namespace libraryMVC.Data
 
             modelBuilder.Entity<BookImage>()
                 .HasIndex(bi => bi.BookId);
+
+            modelBuilder.Entity<Category>()
+                .Property(category => category.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Category>()
+                .Property(category => category.Description)
+                .HasMaxLength(250);
+
+            modelBuilder.Entity<Category>()
+                .HasIndex(category => category.Name)
+                .IsUnique();
 
         }
     }

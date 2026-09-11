@@ -20,9 +20,11 @@ namespace libraryMVC.Models
         public string Title { get; private set; } = string.Empty;
         public string Summary { get; private set; } = string.Empty;
         private readonly List<Author> _authors = new();
+        private readonly List<Category> _categories = new();
         private readonly List<BookImage> _images = new();
 
         public IReadOnlyCollection<Author> Authors => _authors;
+        public IReadOnlyCollection<Category> Categories => _categories;
         public IReadOnlyCollection<BookImage> Images => _images;
 
         public void UpdateDetails(string isbn, string title, string summary)
@@ -37,6 +39,12 @@ namespace libraryMVC.Models
         {
             _authors.Clear();
             _authors.AddRange(authors);
+        }
+
+        public void ReplaceCategories(IEnumerable<Category> categories)
+        {
+            _categories.Clear();
+            _categories.AddRange(categories);
         }
 
         public void AddImage(BookImage image)

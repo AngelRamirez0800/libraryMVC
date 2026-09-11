@@ -22,6 +22,7 @@
                     <tr>
                         <th class="ps-3">ISBN</th>
                         <th>Title</th>
+                        <th>Categories</th>
                         <th>Summary</th>
                         <th>Last Update</th>
                         <th>Status</th>
@@ -39,12 +40,22 @@
                                 @item.Title
                             </a>
                         </td>
+                        <td>
+                            @if (item.Categories != null && item.Categories.Count > 0)
+                            {
+                                <span class="obs-tag-mono">@string.Join(", ", item.Categories.Select(category => category.Name))</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Unclassified</span>
+                            }
+                        </td>
                         <td class="text-muted small" style="max-width: 280px;">
                             <div class="line-clamp-2" title="@item.Summary">
                                 @(string.IsNullOrWhiteSpace(item.Summary) ? "No summary." : item.Summary)
                             </div>
                         </td>
-                        
+
                         <td class="text-secondary small">
                             @if (item.UpdatedAt.HasValue)
                             {
