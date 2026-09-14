@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace libraryMVC.Models
 {
     public class Book : Entity<Guid>
@@ -16,8 +18,16 @@ namespace libraryMVC.Models
             }
         }
 
+        [Required]
+        [StringLength(17)]
         public string Isbn { get; private set; } = string.Empty;
+
+        [Required]
+        [StringLength(200)]
         public string Title { get; private set; } = string.Empty;
+
+        [Required]
+        [StringLength(4000)]
         public string Summary { get; private set; } = string.Empty;
         private readonly List<Author> _authors = new();
         private readonly List<Category> _categories = new();

@@ -1,10 +1,14 @@
+using System.ComponentModel.DataAnnotations;
 using libraryMVC.Abstractions;
 
 namespace libraryMVC.Models
 {
     public class Entity<T> : IEntity<T>
     {
+        [Key]
         public T Id { get; protected set; } = default!;
+
+        [Required]
         public DateTime CreatedAt
         {
             get; protected set;

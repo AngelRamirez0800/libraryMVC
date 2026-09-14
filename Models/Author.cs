@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace libraryMVC.Models
 {
     public class Author : Entity<Guid>
@@ -15,9 +17,20 @@ namespace libraryMVC.Models
             }
         }
 
+        [Required]
+        [StringLength(100)]
         public String FirstName { get; private set; } = String.Empty;
+
+        [Required]
+        [StringLength(100)]
         public String LastName { get; private set; } = String.Empty;
+
+        [Required]
+        [StringLength(100)]
         public String Nationality { get; private set; } = String.Empty;
+
+        [Required]
+        [DataType(DataType.Date)]
         public DateTime BirthDate
         {
             get; private set;
