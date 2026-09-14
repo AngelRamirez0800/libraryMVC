@@ -55,7 +55,10 @@ namespace libraryMVC.Controllers
             {
                 var createdCategory = await _categoryApplication.CreateAsync(category, selectedBookIds);
                 TempData["Success"] = "Categoría creada correctamente.";
-                return RedirectToAction(nameof(Edit), new { id = createdCategory.Id });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id = createdCategory.Id
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -103,7 +106,10 @@ namespace libraryMVC.Controllers
                 }
 
                 TempData["Success"] = "Categoría actualizada correctamente.";
-                return RedirectToAction(nameof(Edit), new { id });
+                return RedirectToAction(nameof(Edit), new
+                {
+                    id
+                });
             }
             catch (InvalidOperationException ex)
             {

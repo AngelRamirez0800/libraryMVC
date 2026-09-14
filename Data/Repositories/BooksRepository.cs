@@ -26,14 +26,14 @@ namespace libraryMVC.Data.Repositories
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
-            public override async Task<IList<Book?>> GetAllAsync()
-            {
-                return await _context.Books
-                .Include(book => book.Authors)
-                .Include(book => book.Categories)
-                    .Cast<Book?>()
-                    .ToListAsync();
-            }
+        public override async Task<IList<Book?>> GetAllAsync()
+        {
+            return await _context.Books
+            .Include(book => book.Authors)
+            .Include(book => book.Categories)
+                .Cast<Book?>()
+                .ToListAsync();
+        }
 
         public async Task<List<Book>> GetRandomFeaturedBooksAsync(int count = 3)
         {
