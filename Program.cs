@@ -4,6 +4,7 @@ using libraryMVC.Data.Storage;
 using libraryMVC.Interfaces;
 using libraryMVC.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+});
 
 
 builder.Services.AddScoped<IAuthorsRepository, AuthorsRepository>();
@@ -60,6 +70,15 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.Migrate();
+
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    foreach (var roleName in new[] { "Admin", "User" })
+    {
+        if (!roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
+        {
+            roleManager.CreateAsync(new IdentityRole(roleName)).GetAwaiter().GetResult();
+        }
+    }
 }
 
 if (!app.Environment.IsDevelopment())
@@ -72,6 +91,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

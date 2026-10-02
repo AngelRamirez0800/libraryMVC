@@ -13,3 +13,16 @@ function toggleSummaryText(btn) {
     btn.innerHTML = '<i class="bi bi-chevron-down me-1"></i>Read more';
   }
 }
+
+document.querySelectorAll('.toggle-password').forEach(function (button) {
+  button.addEventListener('click', function () {
+    var passwordInput = document.getElementById(this.dataset.passwordTarget);
+    var icon = this.querySelector('i');
+    var isPassword = passwordInput.type === 'password';
+
+    passwordInput.type = isPassword ? 'text' : 'password';
+    icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    this.setAttribute('title', isPassword ? 'Hide password' : 'Show password');
+  });
+});
