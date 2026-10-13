@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
+using libraryMVC.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using libraryMVC.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace libraryMVC.Controllers
 {
