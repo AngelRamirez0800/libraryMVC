@@ -1,10 +1,12 @@
 using libraryMVC.DTOs;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace libraryMVC.Controllers
 {
+    [Authorize]
     public class CategoryController : Controller
     {
         private readonly ICategoryQueries _categoryQueries;
@@ -35,6 +37,7 @@ namespace libraryMVC.Controllers
             return category == null ? NotFound() : View(category);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Books = await _bookQueries.GetAllAsync();
@@ -42,6 +45,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryInput category, List<Guid>? selectedBookIds)
         {
@@ -68,6 +72,7 @@ namespace libraryMVC.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var category = await _categoryQueries.GetByIdWithBooksAsync(id);
@@ -81,6 +86,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, CategoryInput category, List<Guid>? selectedBookIds)
         {
@@ -127,6 +133,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(Guid id)
         {
@@ -139,6 +146,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(Guid id)
         {

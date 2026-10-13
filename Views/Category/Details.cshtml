@@ -7,7 +7,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div><h2 class="mb-0 fw-bold">@Model.Name</h2><p class="text-muted small mb-0">Category Property Inspector</p></div>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2"><i class="bi bi-pencil me-1"></i> Edit</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2"><i class="bi bi-pencil me-1"></i> Edit</a>
+        }
         <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
     </div>
 </div>
@@ -33,7 +36,6 @@
                 }
                 else { <span class="text-muted fst-italic">No books associated with this category.</span> }
             </div></div>
-            <div class="obs-property-row"><div class="obs-property-key">ID</div><div class="obs-property-val"><span class="obs-tag-mono">@Model.Id</span></div></div>
         </div>
     </div>
 </div></div>

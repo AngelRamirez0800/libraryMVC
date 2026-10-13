@@ -5,10 +5,12 @@ using libraryMVC.DTOs;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace libraryMVC.Controllers
 {
+    [Authorize]
     public class AuthorsController : Controller
     {
         private readonly IAuthorQueries _authorQueries;
@@ -45,6 +47,7 @@ namespace libraryMVC.Controllers
             return View(author);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Books = await _bookQueries.GetAllAsync();
@@ -52,6 +55,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AuthorInput author, List<Guid>? selectedBookIds)
         {
@@ -66,6 +70,7 @@ namespace libraryMVC.Controllers
             return View(new Author(author.FirstName, author.LastName, author.Nationality, author.BirthDate, author.IsActive));
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var author = await _authorQueries.GetByIdWithBooksAsync(id);
@@ -79,6 +84,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, AuthorInput author, List<Guid>? selectedBookIds)
         {
@@ -105,6 +111,8 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(Guid id)
         {
             await _authorLifecycle.DeleteAsync(id);
@@ -112,6 +120,8 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(Guid id)
         {
             await _authorLifecycle.RestoreAsync(id);

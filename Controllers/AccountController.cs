@@ -87,6 +87,7 @@ namespace libraryMVC.Controllers
 
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
             var model = new LoginViewModel
@@ -94,6 +95,13 @@ namespace libraryMVC.Controllers
                 ReturnUrl = returnUrl
             };
             return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
         [HttpPost]
         [AllowAnonymous]

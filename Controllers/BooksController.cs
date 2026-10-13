@@ -6,10 +6,12 @@ using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace libraryMVC.Controllers
 {
+    [Authorize]
     public class BooksController : Controller
     {
         private readonly IBookQueries _bookService;
@@ -49,6 +51,7 @@ namespace libraryMVC.Controllers
             return View(book);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             ViewBag.Authors = await _authorService.GetAllAsync();
@@ -57,6 +60,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookInput book, List<Guid>? selectedAuthorIds, List<Guid>? selectedCategoryIds, ICollection<IFormFile>? images)
         {
@@ -85,6 +89,7 @@ namespace libraryMVC.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var book = await _bookService.GetByIdWithDetailsAsync(id);
@@ -99,6 +104,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, List<Guid>? selectedCategoryIds, ICollection<IFormFile>? images)
         {
@@ -158,6 +164,8 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(Guid id)
         {
             await _bookLifecycle.DeleteAsync(id);
@@ -165,6 +173,8 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(Guid id)
         {
             await _bookLifecycle.RestoreAsync(id);
@@ -172,6 +182,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddImages(Guid id, ICollection<IFormFile> images)
         {
@@ -204,6 +215,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveImage(Guid imageId, Guid bookId)
         {
