@@ -2,11 +2,12 @@ using libraryMVC.Data;
 using libraryMVC.Data.Repositories;
 using libraryMVC.Data.Storage;
 using libraryMVC.Interfaces;
+using libraryMVC.Security;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllersWithViews();
@@ -42,6 +43,7 @@ builder.Services.AddScoped<ICategoryRespository, CategoryRepository>();
 
 builder.Services.AddScoped<IAuthorsService, AuthorsService>();
 builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthorQueries>(provider =>
     (IAuthorQueries)provider.GetRequiredService<IAuthorsService>());
 builder.Services.AddScoped<IAuthorApplicationService>(provider =>
@@ -71,20 +73,25 @@ builder.Services.AddScoped<ICategoryApplicationService>(provider =>
 builder.Services.AddScoped<ICategoryLifecycle>(provider =>
     (ICategoryLifecycle)provider.GetRequiredService<ICategoryService>());
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    context.Database.Migrate();
+    ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await context.Database.MigrateAsync();
 
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    foreach (var roleName in new[] { "Admin", "User" })
+    RoleManager<IdentityRole> roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    UserManager<IdentityUser> userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    await IdentitySeed.EnsureRolesAsync(roleManager);
+
+    if (args.Any(argument => string.Equals(argument, "--seed-identity", StringComparison.OrdinalIgnoreCase)))
     {
-        if (!roleManager.RoleExistsAsync(roleName).GetAwaiter().GetResult())
-        {
-            roleManager.CreateAsync(new IdentityRole(roleName)).GetAwaiter().GetResult();
-        }
+        await IdentitySeed.SeedAsync(
+            roleManager,
+            userManager,
+            builder.Configuration);
+        Console.WriteLine("Identity roles and seed users are configured.");
+        return;
     }
 }
 

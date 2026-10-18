@@ -1,4 +1,5 @@
 using libraryMVC.Models;
+using libraryMVC.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ namespace libraryMVC.Controllers
                 return View(model);
             }
 
-            const string defaultRole = "User";
+            const string defaultRole = RoleNames.User;
             if (!await _roleManager.RoleExistsAsync(defaultRole))
             {
                 ModelState.AddModelError(string.Empty, "The default user role is not available.");

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using libraryMVC.DTOs;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
+using libraryMVC.Security;
 using libraryMVC.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -34,12 +35,14 @@ namespace libraryMVC.Controllers
             _bookLifecycle = bookLifecycle;
         }
 
+        [Authorize(Roles = RoleNames.BookReaders)]
         public async Task<IActionResult> Index()
         {
             var books = await _bookService.GetAllAsync();
             return View(books);
         }
 
+        [Authorize(Roles = RoleNames.BookReaders)]
         public async Task<IActionResult> Details(Guid id)
         {
             var book = await _bookService.GetByIdWithDetailsAsync(id);
@@ -51,7 +54,7 @@ namespace libraryMVC.Controllers
             return View(book);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         public async Task<IActionResult> Create()
         {
             ViewBag.Authors = await _authorService.GetAllAsync();
@@ -60,7 +63,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookInput book, List<Guid>? selectedAuthorIds, List<Guid>? selectedCategoryIds, ICollection<IFormFile>? images)
         {
@@ -73,7 +76,7 @@ namespace libraryMVC.Controllers
             try
             {
                 await _bookApplicationService.CreateAsync(book, selectedAuthorIds, selectedCategoryIds, images);
-                TempData["Success"] = "Libro creado correctamente.";
+                TempData["Success"] = "Book created successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (ArgumentException ex)
@@ -84,12 +87,12 @@ namespace libraryMVC.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Libro creado, pero ocurrió un error con las imágenes: {ex.Message}";
+                TempData["Error"] = $"Book created, but an error occurred while processing the images: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         public async Task<IActionResult> Edit(Guid id)
         {
             var book = await _bookService.GetByIdWithDetailsAsync(id);
@@ -104,7 +107,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, BookInput book, List<Guid>? selectedAuthorIds, List<Guid>? selectedCategoryIds, ICollection<IFormFile>? images)
         {
@@ -128,8 +131,8 @@ namespace libraryMVC.Controllers
                 }
 
                 TempData["Success"] = images != null && images.Count > 0
-                    ? $"Libro, autores e imágenes ({images.Count}) actualizados correctamente."
-                    : "Libro y autores actualizados correctamente.";
+                    ? $"Book, authors, and images ({images.Count}) updated successfully."
+                    : "Book and authors updated successfully.";
             }
             catch (ArgumentException ex)
             {
@@ -147,7 +150,7 @@ namespace libraryMVC.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Información y autores guardados, pero hubo un error con las imágenes: " + ex.Message;
+                TempData["Error"] = "Information and authors saved, but an error occurred while processing the images: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Edit), new
@@ -164,7 +167,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(Guid id)
         {
@@ -173,7 +176,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(Guid id)
         {
@@ -182,7 +185,7 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddImages(Guid id, ICollection<IFormFile> images)
         {
@@ -190,7 +193,7 @@ namespace libraryMVC.Controllers
             {
                 if (images == null || images.Count == 0)
                 {
-                    TempData["Error"] = "Debes seleccionar al menos una imagen.";
+                    TempData["Error"] = "You must select at least one image.";
                     return RedirectToAction(nameof(Edit), new
                     {
                         id
@@ -198,7 +201,7 @@ namespace libraryMVC.Controllers
                 }
 
                 await _bookApplicationService.AddImagesAsync(id, images);
-                TempData["Success"] = $"Se han subido {images.Count} imagen(es) correctamente.";
+                TempData["Success"] = $"{images.Count} image(s) uploaded successfully.";
                 return RedirectToAction(nameof(Edit), new
                 {
                     id
@@ -206,7 +209,7 @@ namespace libraryMVC.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al subir imágenes: {ex.Message}";
+                TempData["Error"] = $"Error uploading images: {ex.Message}";
                 return RedirectToAction(nameof(Edit), new
                 {
                     id
@@ -215,14 +218,14 @@ namespace libraryMVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.BookManagers)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveImage(Guid imageId, Guid bookId)
         {
             try
             {
                 await _bookApplicationService.RemoveImageAsync(imageId);
-                TempData["Success"] = "Imagen eliminada correctamente.";
+                TempData["Success"] = "Image deleted successfully.";
                 return RedirectToAction(nameof(Edit), new
                 {
                     id = bookId
@@ -230,7 +233,7 @@ namespace libraryMVC.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al eliminar imagen: {ex.Message}";
+                TempData["Error"] = $"Error deleting image: {ex.Message}";
                 return RedirectToAction(nameof(Edit), new
                 {
                     id = bookId
