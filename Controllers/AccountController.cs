@@ -12,22 +12,26 @@ namespace libraryMVC.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ILogger<AccountController> _logger;
 
 
         public AccountController(
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            ILogger<AccountController> logger)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _roleManager = roleManager;
+            _logger = logger;
         }
 
         [HttpGet]
         [AllowAnonymous]
         public IActionResult Register()
         {
+            _logger.LogInformation("Displaying the account registration form.");
             return View();
         }
 
@@ -36,6 +40,7 @@ namespace libraryMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            _logger.LogInformation("Processing an account registration request.");
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -44,6 +49,7 @@ namespace libraryMVC.Controllers
             const string defaultRole = RoleNames.User;
             if (!await _roleManager.RoleExistsAsync(defaultRole))
             {
+                _logger.LogWarning("Account registration could not continue because the default role is unavailable.");
                 ModelState.AddModelError(string.Empty, "The default user role is not available.");
                 return View(model);
             }
@@ -57,6 +63,7 @@ namespace libraryMVC.Controllers
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
+                _logger.LogWarning("Account registration failed validation.");
                 AddIdentityErrors(result);
                 return View(model);
             }
@@ -65,11 +72,13 @@ namespace libraryMVC.Controllers
             if (!roleResult.Succeeded)
             {
                 await _userManager.DeleteAsync(user);
+                _logger.LogWarning("A newly registered account could not be assigned its default role.");
                 AddIdentityErrors(roleResult);
                 return View(model);
             }
 
             await _signInManager.SignInAsync(user, isPersistent: false);
+            _logger.LogInformation("An account was registered and signed in successfully.");
             return RedirectToAction("Index", "Home");
         }
 
@@ -79,7 +88,9 @@ namespace libraryMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            _logger.LogInformation("Processing an account sign-out request.");
             await _signInManager.SignOutAsync();
+            _logger.LogInformation("Account sign-out completed successfully.");
             return RedirectToAction("Index", "Home");
         }
 
@@ -91,6 +102,7 @@ namespace libraryMVC.Controllers
         [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
+            _logger.LogInformation("Displaying the account sign-in form.");
             var model = new LoginViewModel
             {
                 ReturnUrl = returnUrl
@@ -102,6 +114,7 @@ namespace libraryMVC.Controllers
         [AllowAnonymous]
         public IActionResult AccessDenied()
         {
+            _logger.LogWarning("An access-denied page was displayed.");
             return View();
         }
         [HttpPost]
@@ -109,6 +122,7 @@ namespace libraryMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            _logger.LogInformation("Processing an account sign-in request.");
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -119,6 +133,7 @@ namespace libraryMVC.Controllers
 
             if (user == null)
             {
+                _logger.LogWarning("Account sign-in failed because the account was not found.");
                 AddCredentialErrors("Invalid credentials.");
                 return View(model);
             }
@@ -127,6 +142,7 @@ namespace libraryMVC.Controllers
 
             if (result.Succeeded)
             {
+                _logger.LogInformation("Account sign-in completed successfully.");
                 if (!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 {
                     return Redirect(model.ReturnUrl);
@@ -136,6 +152,7 @@ namespace libraryMVC.Controllers
                     return RedirectToAction("Index", "Home");
                 }
             }
+            _logger.LogWarning("Account sign-in failed. Locked out: {IsLockedOut}.", result.IsLockedOut);
             AddCredentialErrors(result.IsLockedOut
                 ? "This account is temporarily locked. Try again later."
                 : "Invalid credentials.");

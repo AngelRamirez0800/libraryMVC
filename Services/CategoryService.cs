@@ -70,12 +70,41 @@ namespace libraryMVC.Services
 
         public new async Task<bool> DeleteAsync(Guid id)
         {
-            if (await _repository.HasBooksAsync(id))
+            return await DeactivateAsync(id) == CategoryDeactivationResult.Deactivated;
+        }
+
+        public async Task<CategoryDeactivationResult> DeactivateAsync(Guid id)
+        {
+            var category = await _repository.GetByIdAsync(id);
+            if (category == null)
             {
-                return false;
+                return CategoryDeactivationResult.NotFound;
             }
 
-            return await base.DeleteAsync(id);
+            if (!category.IsActive)
+            {
+                return CategoryDeactivationResult.AlreadyInactive;
+            }
+
+            if (await _repository.HasBooksAsync(id))
+            {
+                return CategoryDeactivationResult.HasBooks;
+            }
+
+            if (await base.DeleteAsync(id))
+            {
+                return CategoryDeactivationResult.Deactivated;
+            }
+
+            category = await _repository.GetByIdAsync(id);
+            if (category == null)
+            {
+                return CategoryDeactivationResult.NotFound;
+            }
+
+            return category.IsActive
+                ? CategoryDeactivationResult.Failed
+                : CategoryDeactivationResult.AlreadyInactive;
         }
 
         private async Task EnsureUniqueNameAsync(string name, Guid? excludingId = null)
