@@ -7,7 +7,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>afca42ff-72da-4dc4-bd8b-39bbc206b5e4</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<DockerfileContext>.</DockerfileContext>
+		<DockerfilePath>..\..\Dockerfile</DockerfilePath>
+		<DockerfileContext>..\..</DockerfileContext>
 		<GenerateDockerImageOnBuild>false</GenerateDockerImageOnBuild>
 		<DockerFastModeProjectMountDirectory></DockerFastModeProjectMountDirectory>
 	</PropertyGroup>

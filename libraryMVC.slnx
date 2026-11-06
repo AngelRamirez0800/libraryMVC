@@ -1,3 +1,3 @@
 <Solution>
-  <Project Path="libraryMVC.csproj" />
+  <Project Path="src/libraryMVC/libraryMVC.csproj" />
 </Solution>
