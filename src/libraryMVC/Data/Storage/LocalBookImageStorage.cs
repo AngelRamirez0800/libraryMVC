@@ -24,25 +24,55 @@ namespace libraryMVC.Data.Storage
 
             Directory.CreateDirectory(bookImagesDirectory);
 
-            int imageNumber = Directory.GetFiles(bookImagesDirectory).Length + 1;
             string extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
             if (string.IsNullOrEmpty(extension))
             {
                 extension = ".webp";
             }
 
-            string fileName = $"{imageNumber:D2}{extension}";
-            string filePath = Path.Combine(bookImagesDirectory, fileName);
-
-            await using (var stream = new FileStream(filePath, FileMode.Create))
+            for (int imageNumber = 1; ; imageNumber = checked(imageNumber + 1))
             {
-                await imageFile.CopyToAsync(stream);
-            }
+                string fileName = $"{imageNumber:D2}{extension}";
+                string filePath = Path.Combine(bookImagesDirectory, fileName);
+                FileStream stream;
 
-            return new StoredBookImage(
-                $"{ImagesDirectory}/{bookId}/{fileName}",
-                imageNumber,
-                new FileInfo(filePath).Length);
+                try
+                {
+                    stream = new FileStream(
+                        filePath,
+                        FileMode.CreateNew,
+                        FileAccess.Write,
+                        FileShare.None,
+                        bufferSize: 4096,
+                        FileOptions.Asynchronous);
+                }
+                catch (IOException exception) when (IsFileAlreadyExists(exception))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    await using (stream)
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                }
+                catch
+                {
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+
+                    throw;
+                }
+
+                return new StoredBookImage(
+                    $"{ImagesDirectory}/{bookId}/{fileName}",
+                    imageNumber,
+                    new FileInfo(filePath).Length);
+            }
         }
 
         public void Delete(BookImage bookImage)
@@ -63,6 +93,12 @@ namespace libraryMVC.Data.Storage
             {
                 Directory.Delete(directoryPath);
             }
+        }
+
+        private static bool IsFileAlreadyExists(IOException exception)
+        {
+            int nativeErrorCode = exception.HResult & 0xFFFF;
+            return nativeErrorCode is 17 or 80 or 183;
         }
     }
 }
