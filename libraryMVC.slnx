@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="src/libraryMVC/libraryMVC.csproj" />
+  <Project Path="tests/libraryMVC.Tests/libraryMVC.Tests.csproj" />
 </Solution>
