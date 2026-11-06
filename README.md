@@ -20,6 +20,37 @@ Utilizar dotnet format, tomando de base el archivo .editorconfig permite evitar:
 
 # Comandos utilizados
  ```bash 
- dotnet format libraryMVC.csproj
- dotnet build
+  dotnet format src/libraryMVC/libraryMVC.csproj
+  dotnet build src/libraryMVC/libraryMVC.csproj
  ```
+
+ # Suite de testing
+
+ La aplicación y sus pruebas están separadas en `src/` y `tests/`. Para compilar y
+ ejecutar la suite:
+
+ ```bash
+ dotnet build libraryMVC.slnx
+ dotnet test tests/libraryMVC.Tests/libraryMVC.Tests.csproj --filter FullyQualifiedName~Unit
+ dotnet test tests/libraryMVC.Tests/libraryMVC.Tests.csproj --filter FullyQualifiedName~Integration
+ dotnet test tests/libraryMVC.Tests/libraryMVC.Tests.csproj
+ ```
+
+ Las pruebas unitarias no requieren servicios externos. Las pruebas de
+ integración usan SQL Server mediante Testcontainers y requieren Docker Desktop
+ activo; se ejecutan localmente y no se ha configurado CI. El factory de MVC
+ sustituye la cadena de conexión, por lo que las pruebas no usan la base local.
+ Cada test de integración recibe una base restablecida y el dataset Bogus
+ determinista: 2 autores, 10 libros, 5 categorías y una imagen física temporal
+ por libro. Las asociaciones Autor-Categoría son indirectas a través de libros.
+ Los archivos viven fuera de `wwwroot` y se limpian por test.
+
+ La suite comprueba controllers, repositorios, servicios, modelos y rendering
+ MVC con AngleSharp; incluye CRUD HTTP con antiforgery y autorización. Las
+ vistas parciales se verifican a través de las páginas que las componen.
+ Las pruebas unitarias cubren el servicio genérico, servicios de dominio,
+ validación y almacenamiento concurrente de imágenes. `RepositoryIntegrationTests`
+ verifica los repositorios concretos, relaciones, restricciones del modelo EF
+ Core y la unicidad ante inserciones concurrentes. Los flujos HTTP renderizan las
+ vistas accesibles y la prueba de vistas cubre también `Authors/Delete.cshtml`,
+ que no tiene una acción/ruta MVC asociada.
