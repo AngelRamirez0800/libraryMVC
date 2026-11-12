@@ -1,9 +1,9 @@
 using libraryMVC.Data;
 using libraryMVC.Models;
+using libraryMVC.Tests.Integration.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using libraryMVC.Tests.Integration.Infrastructure;
 
 namespace libraryMVC.Tests.Integration;
 
@@ -19,6 +19,7 @@ public sealed class DatabaseIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task StartupAppliesAllRealMigrationsAndDatabasePersistsEntities()
     {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         await using var scope = _fixture.Factory.Services.CreateAsyncScope();
         ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -29,20 +30,23 @@ public sealed class DatabaseIntegrationTests : IntegrationTestBase
             "20260911004024_AddCategoryBook",
             "20260914182915_AddDataAnnotationConstraints",
             "20261002003518_AddIdentity",
-            "20261002155954_ProductsAndCategories"
+            "20261002155954_ProductsAndCategories",
+            "20261110203639_AddLiteratureSeedKeys"
         ];
 
-        Assert.True(await context.Database.CanConnectAsync());
-        Assert.Equal(expectedMigrations, await context.Database.GetAppliedMigrationsAsync());
-        Assert.Empty(await context.Database.GetPendingMigrationsAsync());
+        Assert.True(await context.Database.CanConnectAsync(cancellationToken));
+        Assert.Equal(expectedMigrations, await context.Database.GetAppliedMigrationsAsync(cancellationToken));
+        Assert.Empty(await context.Database.GetPendingMigrationsAsync(cancellationToken));
 
         string title = $"Integration book {Guid.NewGuid():N}";
         var book = new Book($"978-{Random.Shared.Next(100000000, 999999999)}", title, "Persisted by an integration test.");
         context.Books.Add(book);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         context.ChangeTracker.Clear();
-        Book? persistedBook = await context.Books.SingleOrDefaultAsync(item => item.Title == title);
+        Book? persistedBook = await context.Books.SingleOrDefaultAsync(
+            item => item.Title == title,
+            cancellationToken);
         Assert.NotNull(persistedBook);
         Assert.NotEqual(Guid.Empty, persistedBook.Id);
     }
@@ -50,6 +54,7 @@ public sealed class DatabaseIntegrationTests : IntegrationTestBase
     [Fact]
     public async Task BogusSeedContainsExpectedGraphAndRealTemporaryImages()
     {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         await using var scope = _fixture.Factory.Services.CreateAsyncScope();
         ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -57,9 +62,11 @@ public sealed class DatabaseIntegrationTests : IntegrationTestBase
             .Include(book => book.Authors)
             .Include(book => book.Categories)
             .Include(book => book.Images)
-            .ToListAsync();
-        List<Author> authors = await context.Authors.Include(author => author.Books).ToListAsync();
-        List<Category> categories = await context.Categories.Include(category => category.Books).ToListAsync();
+            .ToListAsync(cancellationToken);
+        List<Author> authors = await context.Authors.Include(author => author.Books)
+            .ToListAsync(cancellationToken);
+        List<Category> categories = await context.Categories.Include(category => category.Books)
+            .ToListAsync(cancellationToken);
 
         Assert.Equal(2, authors.Count);
         Assert.Equal(10, books.Count);

@@ -254,7 +254,8 @@ namespace libraryMVC.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime2");
@@ -288,6 +289,9 @@ namespace libraryMVC.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FirstName", "LastName", "BirthDate")
+                        .IsUnique();
+
                     b.ToTable("Authors");
                 });
 
@@ -295,7 +299,8 @@ namespace libraryMVC.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -326,6 +331,9 @@ namespace libraryMVC.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Isbn")
+                        .IsUnique();
+
                     b.ToTable("Books");
                 });
 
@@ -333,7 +341,8 @@ namespace libraryMVC.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<Guid>("BookId")
                         .HasColumnType("uniqueidentifier");
@@ -377,7 +386,8 @@ namespace libraryMVC.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");

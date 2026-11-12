@@ -3,6 +3,7 @@ using libraryMVC.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ValueGeneration;
 
 namespace libraryMVC.Data
 {
@@ -32,6 +33,34 @@ namespace libraryMVC.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Author>()
+                .Property(author => author.Id)
+                .HasDefaultValueSql("NEWSEQUENTIALID()")
+                .HasValueGenerator<TemporaryGuidValueGenerator>();
+
+            modelBuilder.Entity<Book>()
+                .Property(book => book.Id)
+                .HasDefaultValueSql("NEWSEQUENTIALID()")
+                .HasValueGenerator<TemporaryGuidValueGenerator>();
+
+            modelBuilder.Entity<BookImage>()
+                .Property(image => image.Id)
+                .HasDefaultValueSql("NEWSEQUENTIALID()")
+                .HasValueGenerator<TemporaryGuidValueGenerator>();
+
+            modelBuilder.Entity<Category>()
+                .Property(category => category.Id)
+                .HasDefaultValueSql("NEWSEQUENTIALID()")
+                .HasValueGenerator<TemporaryGuidValueGenerator>();
+
+            modelBuilder.Entity<Author>()
+                .HasIndex(author => new { author.FirstName, author.LastName, author.BirthDate })
+                .IsUnique();
+
+            modelBuilder.Entity<Book>()
+                .HasIndex(book => book.Isbn)
+                .IsUnique();
 
             modelBuilder.Entity<BookImage>()
                 .HasOne(bi => bi.Book)

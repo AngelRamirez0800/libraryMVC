@@ -1,5 +1,6 @@
 using libraryMVC.Data;
 using libraryMVC.Data.Repositories;
+using libraryMVC.Data.Seeding;
 using libraryMVC.Data.Storage;
 using libraryMVC.Interfaces;
 using libraryMVC.Security;
@@ -73,6 +74,7 @@ builder.Services.AddScoped<IReportImageProvider, LocalReportImageProvider>();
 builder.Services.AddScoped<IPdfReportGenerator, PdfReportGenerator>();
 builder.Services.AddScoped<IExcelReportGenerator, ExcelReportGenerator>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<ILiteratureSeedService, LiteratureSeedService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryQueries>(provider =>
     (ICategoryQueries)provider.GetRequiredService<ICategoryService>());
@@ -83,6 +85,21 @@ builder.Services.AddScoped<ICategoryLifecycle>(provider =>
 
 WebApplication app = builder.Build();
 
+bool seedIdentity = args.Any(argument =>
+    string.Equals(argument, "--seed-identity", StringComparison.OrdinalIgnoreCase));
+bool seedLiterature = args.Any(argument =>
+    string.Equals(argument, "--seed-literature", StringComparison.OrdinalIgnoreCase));
+
+if (seedIdentity && seedLiterature)
+{
+    throw new InvalidOperationException("Run --seed-identity and --seed-literature as separate commands.");
+}
+
+if (seedLiterature && app.Environment.IsEnvironment("Testing"))
+{
+    throw new InvalidOperationException("The literature seed command cannot run in the Testing environment.");
+}
+
 using (IServiceScope scope = app.Services.CreateScope())
 {
     ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -92,13 +109,24 @@ using (IServiceScope scope = app.Services.CreateScope())
     UserManager<IdentityUser> userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
     await IdentitySeed.EnsureRolesAsync(roleManager);
 
-    if (args.Any(argument => string.Equals(argument, "--seed-identity", StringComparison.OrdinalIgnoreCase)))
+    if (seedIdentity)
     {
         await IdentitySeed.SeedAsync(
             roleManager,
             userManager,
             builder.Configuration);
         Console.WriteLine("Identity roles and seed users are configured.");
+        return;
+    }
+
+    if (seedLiterature)
+    {
+        ILiteratureSeedService literatureSeed = scope.ServiceProvider
+            .GetRequiredService<ILiteratureSeedService>();
+        LiteratureSeedResult result = await literatureSeed.SeedAsync();
+        Console.WriteLine(
+            $"Literature seed completed: {result.Authors} authors, {result.Books} books, " +
+            $"{result.Categories} categories, and {result.BookImages} book images.");
         return;
     }
 }

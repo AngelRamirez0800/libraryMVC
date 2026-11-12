@@ -46,6 +46,15 @@ namespace libraryMVC.Models
             get; private set;
         }
 
+        public void UpdateFileMetadata(string originalFileName, long fileSize)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(originalFileName);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(fileSize);
+            OriginalFileName = originalFileName;
+            FileSize = fileSize;
+            UpdatedAt = DateTime.Now;
+        }
+
         [NotMapped]
         public bool IsPrimary => ImageNumber == 1;
 

@@ -27,4 +27,13 @@
     <ProjectReference Include="..\..\src\libraryMVC\libraryMVC.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\..\src\libraryMVC\wwwroot\images\authors\**\*.*"
+             Link="wwwroot\images\authors\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\src\libraryMVC\wwwroot\images\books\seed-assets\**\*.*"
+             Link="wwwroot\images\books\seed-assets\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
