@@ -1,4 +1,5 @@
 using libraryMVC.DTOs;
+using libraryMVC.DTOs.Lists;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -29,10 +30,31 @@ namespace libraryMVC.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery] CategoryListFilter filters,
+            CancellationToken cancellationToken)
         {
             _logger.LogInformation("Retrieving the category list.");
-            return View(await _categoryQueries.GetAllAsync());
+            PageSlice<CategoryListItem> results = await _categoryQueries.GetPageAsync(
+                filters,
+                1,
+                ListPageDefaults.PageSize,
+                cancellationToken);
+            return View(new CategoriesIndexViewModel(results, filters));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoadMore(
+            [FromQuery] CategoryListFilter filters,
+            int page,
+            CancellationToken cancellationToken)
+        {
+            PageSlice<CategoryListItem> results = await _categoryQueries.GetPageAsync(
+                filters,
+                page,
+                ListPageDefaults.PageSize,
+                cancellationToken);
+            return PartialView("_Rows", results);
         }
 
         public async Task<IActionResult> Details(Guid id)

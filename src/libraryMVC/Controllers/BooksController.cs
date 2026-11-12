@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using libraryMVC.DTOs;
+using libraryMVC.DTOs.Lists;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Security;
@@ -39,11 +40,33 @@ namespace libraryMVC.Controllers
         }
 
         [Authorize(Roles = RoleNames.BookReaders)]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery] BookListFilter filters,
+            CancellationToken cancellationToken)
         {
             _logger.LogInformation("Retrieving the book list.");
-            var books = await _bookService.GetAllAsync();
-            return View(books);
+            PageSlice<BookListItem> results = await _bookService.GetPageAsync(
+                filters,
+                1,
+                ListPageDefaults.PageSize,
+                cancellationToken);
+            BookFilterOptions options = await _bookService.GetFilterOptionsAsync(cancellationToken);
+            return View(new BooksIndexViewModel(results, filters, options));
+        }
+
+        [Authorize(Roles = RoleNames.BookReaders)]
+        [HttpGet]
+        public async Task<IActionResult> LoadMore(
+            [FromQuery] BookListFilter filters,
+            int page,
+            CancellationToken cancellationToken)
+        {
+            PageSlice<BookListItem> results = await _bookService.GetPageAsync(
+                filters,
+                page,
+                ListPageDefaults.PageSize,
+                cancellationToken);
+            return PartialView("_Rows", results);
         }
 
         [Authorize(Roles = RoleNames.BookReaders)]

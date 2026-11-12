@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using libraryMVC.DTOs;
+using libraryMVC.DTOs.Lists;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 
@@ -68,6 +69,21 @@ namespace libraryMVC.Services
         public async Task<Author?> GetByIdWithBooksAsync(Guid id)
         {
             return await _repository.GetByIdWithBooksAsync(id);
+        }
+
+        public Task<PageSlice<AuthorListItem>> GetPageAsync(
+            AuthorListFilter filters,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            return _repository.GetPageAsync(filters, page, pageSize, cancellationToken);
+        }
+
+        public Task<IReadOnlyList<string>> GetNationalitiesAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return _repository.GetNationalitiesAsync(cancellationToken);
         }
 
     }

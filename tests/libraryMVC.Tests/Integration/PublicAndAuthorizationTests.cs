@@ -2,10 +2,10 @@ using System.Net;
 using AngleSharp.Dom;
 using libraryMVC.Data;
 using libraryMVC.Models;
+using libraryMVC.Tests.Integration.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using libraryMVC.Tests.Integration.Infrastructure;
 
 namespace libraryMVC.Tests.Integration;
 
@@ -45,8 +45,15 @@ public sealed class PublicAndAuthorizationTests : IntegrationTestBase
     [InlineData("/Home/AcercaDe")]
     [InlineData("/Home/Usuarios")]
     [InlineData("/Books/Index")]
+    [InlineData("/Books/LoadMore?page=2")]
     [InlineData("/Authors/Index")]
+    [InlineData("/Authors/LoadMore?page=2")]
     [InlineData("/Category/Index")]
+    [InlineData("/Category/LoadMore?page=2")]
+    [InlineData("/Reports/books/pdf")]
+    [InlineData("/Reports/books/excel")]
+    [InlineData("/Reports/authors/pdf")]
+    [InlineData("/Reports/categories/excel")]
     public async Task AnonymousRequestsToProtectedRoutesRedirectToLogin(string path)
     {
         using HttpResponseMessage response = await Client.GetAsync(path);
@@ -60,6 +67,7 @@ public sealed class PublicAndAuthorizationTests : IntegrationTestBase
     [Fact]
     public async Task AuthenticatedUsersCanReadBooksButCannotAccessManagerOrAdminRoutes()
     {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         TestAccount account = await IntegrationIdentity.CreateUserAsync(_fixture);
         string title = $"Database-backed book {Guid.NewGuid():N}";
         await using (var scope = _fixture.Factory.Services.CreateAsyncScope())
@@ -90,7 +98,45 @@ public sealed class PublicAndAuthorizationTests : IntegrationTestBase
         Assert.Equal(HttpStatusCode.OK, inventoryResponse.StatusCode);
         IDocument inventory = await HtmlTestHelpers.ParseAsync(inventoryResponse);
         Assert.Contains(title, inventory.QuerySelector("tbody")?.TextContent);
+        Assert.Null(inventory.QuerySelector("a[href='/Reports/books/pdf']"));
+        Assert.Null(inventory.QuerySelector("a[href='/Reports/books/excel']"));
         Assert.Null(inventory.QuerySelector("a[href='/Books/Create']"));
+
+        using HttpResponseMessage bookPageResponse = await userClient.GetAsync(
+            "/Books/LoadMore?page=2",
+            cancellationToken);
+        Assert.Equal(HttpStatusCode.OK, bookPageResponse.StatusCode);
+
+        using HttpResponseMessage authorsResponse = await userClient.GetAsync(
+            "/Authors/Index",
+            cancellationToken);
+        IDocument authorsPage = await HtmlTestHelpers.ParseAsync(authorsResponse);
+        Assert.Null(authorsPage.QuerySelector("a[href='/Reports/authors/pdf']"));
+        Assert.Null(authorsPage.QuerySelector("a[href='/Reports/authors/excel']"));
+
+        using HttpResponseMessage categoriesResponse = await userClient.GetAsync(
+            "/Category/Index",
+            cancellationToken);
+        IDocument categoriesPage = await HtmlTestHelpers.ParseAsync(categoriesResponse);
+        Assert.Null(categoriesPage.QuerySelector("a[href='/Reports/categories/pdf']"));
+        Assert.Null(categoriesPage.QuerySelector("a[href='/Reports/categories/excel']"));
+
+        foreach (string reportPath in new[]
+        {
+            "/Reports/books/pdf",
+            "/Reports/books/excel",
+            "/Reports/authors/pdf",
+            "/Reports/authors/excel",
+            "/Reports/categories/pdf",
+            "/Reports/categories/excel"
+        })
+        {
+            using HttpResponseMessage reportResponse = await userClient.GetAsync(
+                reportPath,
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.Redirect, reportResponse.StatusCode);
+            Assert.StartsWith("/Account/AccessDenied", HtmlTestHelpers.GetRedirectPathAndQuery(reportResponse));
+        }
 
         using HttpResponseMessage createResponse = await userClient.GetAsync("/Books/Create");
         Assert.Equal(HttpStatusCode.Redirect, createResponse.StatusCode);
@@ -104,6 +150,37 @@ public sealed class PublicAndAuthorizationTests : IntegrationTestBase
         using HttpClient adminClient = _fixture.CreateClient();
         using HttpResponseMessage adminLogin = await LoginAsync(adminClient, admin.Email, admin.Password);
         Assert.Equal(HttpStatusCode.Redirect, adminLogin.StatusCode);
+
+        foreach ((string reportPath, string contentType) in new[]
+        {
+            ("/Reports/books/pdf", "application/pdf"),
+            ("/Reports/books/excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            ("/Reports/authors/pdf", "application/pdf"),
+            ("/Reports/authors/excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            ("/Reports/categories/pdf", "application/pdf"),
+            ("/Reports/categories/excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        })
+        {
+            using HttpResponseMessage reportResponse = await adminClient.GetAsync(
+                reportPath,
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.OK, reportResponse.StatusCode);
+            Assert.Equal(contentType, reportResponse.Content.Headers.ContentType?.MediaType);
+        }
+
+        using HttpResponseMessage adminAuthorsResponse = await adminClient.GetAsync(
+            "/Authors/Index",
+            cancellationToken);
+        IDocument adminAuthorsPage = await HtmlTestHelpers.ParseAsync(adminAuthorsResponse);
+        Assert.NotNull(adminAuthorsPage.QuerySelector("a[href='/Reports/authors/pdf']"));
+        Assert.NotNull(adminAuthorsPage.QuerySelector("a[href='/Reports/authors/excel']"));
+
+        using HttpResponseMessage adminCategoriesResponse = await adminClient.GetAsync(
+            "/Category/Index",
+            cancellationToken);
+        IDocument adminCategoriesPage = await HtmlTestHelpers.ParseAsync(adminCategoriesResponse);
+        Assert.NotNull(adminCategoriesPage.QuerySelector("a[href='/Reports/categories/pdf']"));
+        Assert.NotNull(adminCategoriesPage.QuerySelector("a[href='/Reports/categories/excel']"));
 
         using HttpResponseMessage usersResponse = await adminClient.GetAsync("/Home/Usuarios");
         Assert.Equal(HttpStatusCode.OK, usersResponse.StatusCode);

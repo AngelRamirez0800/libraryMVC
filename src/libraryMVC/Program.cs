@@ -4,11 +4,14 @@ using libraryMVC.Data.Storage;
 using libraryMVC.Interfaces;
 using libraryMVC.Security;
 using libraryMVC.Services;
+using libraryMVC.Services.Reports;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Infrastructure;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -65,6 +68,11 @@ builder.Services.AddScoped<IAuthorBookRepository, AuthorBookRepository>();
 builder.Services.AddScoped<IAuthorBookService, AuthorBookService>();
 builder.Services.AddScoped<IBookImageRepository, BookImageRepository>();
 builder.Services.AddScoped<IBookApplicationService, BookApplicationService>();
+builder.Services.AddScoped<IReportDataRepository, ReportDataRepository>();
+builder.Services.AddScoped<IReportImageProvider, LocalReportImageProvider>();
+builder.Services.AddScoped<IPdfReportGenerator, PdfReportGenerator>();
+builder.Services.AddScoped<IExcelReportGenerator, ExcelReportGenerator>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryQueries>(provider =>
     (ICategoryQueries)provider.GetRequiredService<ICategoryService>());

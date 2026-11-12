@@ -1,21 +1,45 @@
-@model IEnumerable<libraryMVC.Models.Category>
+@model libraryMVC.DTOs.Lists.CategoriesIndexViewModel
 
 @{
     ViewData["Title"] = "Categories";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
     <div>
         <h2 class="mb-0 fw-bold">Categories</h2>
         <p class="text-muted small mb-0">Category Directory</p>
     </div>
-    @if (User.IsInRole("Admin"))
-    {
-        <a asp-action="Create" class="btn btn-primary shadow-sm"><i class="bi bi-plus-lg me-1"></i> Create New</a>
-    }
+    <div class="d-flex flex-wrap gap-2">
+        @if (User.IsInRole("Admin") || User.IsInRole("Librarian"))
+        {
+            <a asp-controller="Reports" asp-action="CategoriesPdf" asp-route-search="@Model.Filters.Search" class="btn btn-outline-danger">
+                <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+            </a>
+            <a asp-controller="Reports" asp-action="CategoriesExcel" asp-route-search="@Model.Filters.Search" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-excel me-1"></i> Excel
+            </a>
+        }
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-primary shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Create New
+            </a>
+        }
+    </div>
 </div>
 
-<div class="card shadow-sm border-0">
+<form id="category-filters" asp-action="Index" method="get" class="card shadow-sm border-0 mb-3">
+    <div class="card-body d-flex flex-wrap align-items-end gap-3">
+        <div class="flex-grow-1">
+            <label for="category-search" class="form-label">Search category</label>
+            <input id="category-search" name="Search" value="@Model.Filters.Search" class="form-control" placeholder="Category name" />
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Search</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<div class="card shadow-sm border-0 mb-5" data-infinite-list>
     <div class="card-body p-0">
         @if (TempData["Error"] != null)
         {
@@ -32,72 +56,28 @@
                         <th class="text-end pe-3">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var category in Model)
-                    {
-                        <tr>
-                            <td class="ps-3 fw-semibold"><a asp-action="Details" asp-route-id="@category.Id" class="text-decoration-none text-light hover-accent">@category.Name</a></td>
-                            <td class="text-secondary">@category.Description</td>
-                            <td>@category.Books.Count</td>
-                            <td>
-                                @if (category.IsActive)
-                                {
-                                    <span class="obs-status-dot active">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="obs-status-dot inactive">Inactive</span>
-                                }
-                            </td>
-                            <td class="text-end pe-3">
-                                @if (User.IsInRole("Admin"))
-                                {
-                                <div class="dropdown">
-                                    <button class="btn btn-sm border-0 shadow-none p-1 text-secondary" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical fs-5"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                        <li>
-                                            <a class="dropdown-item" asp-action="Edit" asp-route-id="@category.Id">
-                                                <i class="bi bi-pencil me-2 text-primary"></i> Edit
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" asp-action="Details" asp-route-id="@category.Id">
-                                                <i class="bi bi-info-circle me-2 text-info"></i> Details
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            @if (category.IsActive)
-                                            {
-                                                <form asp-action="Deactivate" asp-route-id="@category.Id" method="post" class="d-inline">
-                                                    <button type="submit" class="dropdown-item text-danger" disabled="@(category.Books.Count > 0)" title="@(category.Books.Count > 0 ? "Categories related to books cannot be deactivated" : "Deactivate category")" onclick="return confirm('Are you sure you want to deactivate this category?');">
-                                                        <i class="bi bi-trash me-2"></i> Deactivate
-                                                    </button>
-                                                </form>
-                                            }
-                                            else
-                                            {
-                                                <form asp-action="Restore" asp-route-id="@category.Id" method="post" class="d-inline">
-                                                    <button type="submit" class="dropdown-item text-success" onclick="return confirm('Are you sure you want to activate this category?');">
-                                                        <i class="bi bi-arrow-counterclockwise me-2"></i> Activate
-                                                    </button>
-                                                </form>
-                                            }
-                                        </li>
-                                    </ul>
-                                </div>
-                                }
-                                else
-                                {
-                                    <a asp-action="Details" asp-route-id="@category.Id" class="btn btn-sm btn-outline-info">Details</a>
-                                }
-                            </td>
-                        </tr>
-                    }
+                <tbody id="category-list-rows"
+                       data-load-more-url="@Url.Action("LoadMore")"
+                       data-filter-form-id="category-filters"
+                       data-next-page="2"
+                       data-has-more="@Model.Results.HasMore.ToString().ToLowerInvariant()">
+                    @await Html.PartialAsync("_Rows", Model.Results)
                 </tbody>
             </table>
+        </div>
+        <div class="infinite-list-status p-3 text-center"
+             data-infinite-status
+             data-sentinel
+             aria-live="polite"
+             role="status"
+             data-has-more="@Model.Results.HasMore.ToString().ToLowerInvariant()">
+            @if (!Model.Results.Items.Any())
+            {
+                <span>No categories match this search.</span>
+            }
+        </div>
+        <div class="text-center p-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-load-more hidden="@(!Model.Results.HasMore)">Load more</button>
         </div>
     </div>
 </div>

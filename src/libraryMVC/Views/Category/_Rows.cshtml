@@ -1,0 +1,56 @@
+@model libraryMVC.DTOs.Lists.PageSlice<libraryMVC.DTOs.Lists.CategoryListItem>
+
+@foreach (var category in Model.Items)
+{
+    <tr>
+        <td class="ps-3 fw-semibold">
+            <a asp-action="Details" asp-route-id="@category.Id" class="text-decoration-none text-light hover-accent">@category.Name</a>
+        </td>
+        <td class="text-secondary">@category.Description</td>
+        <td>@category.BookCount</td>
+        <td>
+            @if (category.IsActive)
+            {
+                <span class="obs-status-dot active">Active</span>
+            }
+            else
+            {
+                <span class="obs-status-dot inactive">Inactive</span>
+            }
+        </td>
+        <td class="text-end pe-3">
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="dropdown">
+                    <button class="btn btn-sm border-0 shadow-none p-1 text-secondary" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" aria-label="Actions for @category.Name">
+                        <i class="bi bi-three-dots-vertical fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@category.Id"><i class="bi bi-pencil me-2 text-primary"></i>Edit</a></li>
+                        <li><a class="dropdown-item" asp-action="Details" asp-route-id="@category.Id"><i class="bi bi-info-circle me-2 text-info"></i>Details</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            @if (category.IsActive)
+                            {
+                                <form asp-action="Deactivate" asp-route-id="@category.Id" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item text-danger" disabled="@(category.BookCount > 0)" title="@(category.BookCount > 0 ? "Categories related to books cannot be deactivated" : "Deactivate category")" onclick="return confirm('Are you sure you want to deactivate this category?');"><i class="bi bi-trash me-2"></i>Deactivate</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Restore" asp-route-id="@category.Id" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item text-success" onclick="return confirm('Are you sure you want to activate this category?');"><i class="bi bi-arrow-counterclockwise me-2"></i>Activate</button>
+                                </form>
+                            }
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <a asp-action="Details" asp-route-id="@category.Id" class="btn btn-sm btn-outline-info">Details</a>
+            }
+        </td>
+    </tr>
+}
+<tr hidden data-list-page-metadata data-has-more="@Model.HasMore.ToString().ToLowerInvariant()"></tr>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using libraryMVC.DTOs;
+using libraryMVC.DTOs.Lists;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
@@ -33,11 +34,32 @@ namespace libraryMVC.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            [FromQuery] AuthorListFilter filters,
+            CancellationToken cancellationToken)
         {
             _logger.LogInformation("Retrieving the author list.");
-            var authors = await _authorQueries.GetAllAsync();
-            return View(authors);
+            PageSlice<AuthorListItem> results = await _authorQueries.GetPageAsync(
+                filters,
+                1,
+                ListPageDefaults.PageSize,
+                cancellationToken);
+            IReadOnlyList<string> nationalities = await _authorQueries.GetNationalitiesAsync(cancellationToken);
+            return View(new AuthorsIndexViewModel(results, filters, nationalities));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoadMore(
+            [FromQuery] AuthorListFilter filters,
+            int page,
+            CancellationToken cancellationToken)
+        {
+            PageSlice<AuthorListItem> results = await _authorQueries.GetPageAsync(
+                filters,
+                page,
+                ListPageDefaults.PageSize,
+                cancellationToken);
+            return PartialView("_Rows", results);
         }
 
         public async Task<IActionResult> Details(Guid id)

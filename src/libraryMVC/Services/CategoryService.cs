@@ -1,4 +1,5 @@
 using libraryMVC.DTOs;
+using libraryMVC.DTOs.Lists;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 
@@ -61,6 +62,15 @@ namespace libraryMVC.Services
         public async Task<Category?> GetByIdWithBooksAsync(Guid id)
         {
             return await _repository.GetByIdWithBooksAsync(id);
+        }
+
+        public Task<PageSlice<CategoryListItem>> GetPageAsync(
+            CategoryListFilter filters,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            return _repository.GetPageAsync(filters, page, pageSize, cancellationToken);
         }
 
         public new Task<IList<Category?>> GetAllActiveAsync()

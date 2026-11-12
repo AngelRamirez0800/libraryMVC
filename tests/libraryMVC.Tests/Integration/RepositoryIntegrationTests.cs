@@ -1,14 +1,16 @@
 using libraryMVC.Data;
 using libraryMVC.Data.Repositories;
 using libraryMVC.DTOs;
+using libraryMVC.DTOs.Lists;
+using libraryMVC.DTOs.Reports;
 using libraryMVC.Interfaces;
 using libraryMVC.Models;
 using libraryMVC.Services;
+using libraryMVC.Tests.Integration.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using libraryMVC.Tests.Integration.Infrastructure;
 
 namespace libraryMVC.Tests.Integration;
 
@@ -94,6 +96,167 @@ public sealed class RepositoryIntegrationTests : IntegrationTestBase
         Assert.True(await categoriesRepository.NameExistsAsync(category.Name.ToUpperInvariant()));
         Assert.False(await categoriesRepository.NameExistsAsync(category.Name, category.Id));
         Assert.False(await categoriesRepository.NameExistsAsync("A category that does not exist"));
+    }
+
+    [Fact]
+    public async Task PagedQueriesApplyFiltersBeforeStablePagination()
+    {
+        await using var scope = _fixture.Factory.Services.CreateAsyncScope();
+        ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Author author = await context.Authors.OrderBy(entity => entity.LastName).FirstAsync();
+        Category category = await context.Categories.OrderBy(entity => entity.Name).FirstAsync();
+        const string titlePrefix = "Paged navigation fixture";
+        string[] isbns = Enumerable.Range(0, 17)
+            .Select(_ => $"978{Guid.NewGuid():N}"[..13])
+            .ToArray();
+
+        foreach (int index in Enumerable.Range(0, isbns.Length))
+        {
+            var book = new Book(isbns[index], $"{titlePrefix} {index:D2}", "Used to validate stable pagination.");
+            book.ReplaceAuthors([author]);
+            book.ReplaceCategories([category]);
+            context.Books.Add(book);
+        }
+
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var booksRepository = new BooksRepository(context);
+        var filter = new BookListFilter
+        {
+            Search = titlePrefix,
+            AuthorId = author.Id,
+            CategoryId = category.Id
+        };
+        var allPages = new List<BookListItem>();
+        for (int pageNumber = 1; pageNumber <= 4; pageNumber++)
+        {
+            PageSlice<BookListItem> page = await booksRepository.GetPageAsync(
+                filter,
+                pageNumber,
+                5,
+                TestContext.Current.CancellationToken);
+            Assert.Equal(pageNumber < 4, page.HasMore);
+            allPages.AddRange(page.Items);
+        }
+
+        Assert.Equal(17, allPages.Count);
+        Assert.Equal(17, allPages.Select(book => book.Id).Distinct().Count());
+        Assert.Equal(
+            Enumerable.Range(0, 17).Select(index => $"{titlePrefix} {index:D2}"),
+            allPages.Select(book => book.Title));
+
+        PageSlice<BookListItem> isbnMatch = await booksRepository.GetPageAsync(
+            new BookListFilter
+            {
+                Search = isbns[0][3..10],
+                AuthorId = author.Id,
+                CategoryId = category.Id
+            },
+            1,
+            5,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(isbns[0], Assert.Single(isbnMatch.Items).Isbn);
+
+        PageSlice<BookListItem> noMatch = await booksRepository.GetPageAsync(
+            new BookListFilter { Search = titlePrefix, AuthorId = Guid.NewGuid() },
+            1,
+            5,
+            TestContext.Current.CancellationToken);
+        Assert.Empty(noMatch.Items);
+        Assert.False(noMatch.HasMore);
+
+        var authorsRepository = new AuthorsRepository(context);
+        PageSlice<AuthorListItem> authorPage = await authorsRepository.GetPageAsync(
+            new AuthorListFilter { Search = author.LastName, Nationality = author.Nationality },
+            1,
+            5,
+            TestContext.Current.CancellationToken);
+        Assert.Contains(authorPage.Items, item => item.Id == author.Id);
+        Assert.Contains(author.Nationality, await authorsRepository.GetNationalitiesAsync(
+            TestContext.Current.CancellationToken));
+        PageSlice<AuthorListItem> firstAuthorPage = await authorsRepository.GetPageAsync(
+            new AuthorListFilter(),
+            1,
+            1,
+            TestContext.Current.CancellationToken);
+        PageSlice<AuthorListItem> secondAuthorPage = await authorsRepository.GetPageAsync(
+            new AuthorListFilter(),
+            2,
+            1,
+            TestContext.Current.CancellationToken);
+        Assert.True(firstAuthorPage.HasMore);
+        Assert.False(secondAuthorPage.HasMore);
+        Assert.NotEqual(firstAuthorPage.Items[0].Id, secondAuthorPage.Items[0].Id);
+
+        var categoriesRepository = new CategoryRepository(context);
+        PageSlice<CategoryListItem> categoryPage = await categoriesRepository.GetPageAsync(
+            new CategoryListFilter { Search = category.Name },
+            1,
+            5,
+            TestContext.Current.CancellationToken);
+        CategoryListItem categoryItem = Assert.Single(categoryPage.Items, item => item.Id == category.Id);
+        Assert.True(categoryItem.BookCount >= 17);
+        PageSlice<CategoryListItem> firstCategoryPage = await categoriesRepository.GetPageAsync(
+            new CategoryListFilter(),
+            1,
+            2,
+            TestContext.Current.CancellationToken);
+        PageSlice<CategoryListItem> secondCategoryPage = await categoriesRepository.GetPageAsync(
+            new CategoryListFilter(),
+            2,
+            2,
+            TestContext.Current.CancellationToken);
+        PageSlice<CategoryListItem> lastCategoryPage = await categoriesRepository.GetPageAsync(
+            new CategoryListFilter(),
+            3,
+            2,
+            TestContext.Current.CancellationToken);
+        Assert.True(firstCategoryPage.HasMore);
+        Assert.True(secondCategoryPage.HasMore);
+        Assert.False(lastCategoryPage.HasMore);
+        Assert.Equal(5, firstCategoryPage.Items
+            .Concat(secondCategoryPage.Items)
+            .Concat(lastCategoryPage.Items)
+            .Select(item => item.Id)
+            .Distinct()
+            .Count());
+    }
+
+    [Fact]
+    public async Task ReportRepositoryIncludesRelatedDataAndInactiveRecords()
+    {
+        await using var scope = _fixture.Factory.Services.CreateAsyncScope();
+        ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var repository = new ReportDataRepository(context);
+
+        BookReportData firstBook = (await repository.GetBooksAsync()).First();
+        IReadOnlyList<AuthorReportData> authors = await repository.GetAuthorsAsync();
+        IReadOnlyList<CategoryReportData> categories = await repository.GetCategoriesAsync();
+
+        Assert.NotEmpty(firstBook.Authors);
+        Assert.NotEmpty(firstBook.Categories);
+        Assert.Equal("01.png", Assert.Single(firstBook.Images).OriginalFileName);
+        Assert.EndsWith("/01.png", firstBook.Images[0].ImagePath);
+        Assert.Contains(authors, author => author.BookTitles.Count > 0);
+        Assert.Contains(categories, category => category.BookTitles.Count > 0);
+        Assert.Equal(10, (await repository.GetBooksAsync()).Count);
+        IReadOnlyList<BookReportData> filteredBooks = await repository.GetBooksAsync(
+            new ReportFilters(Search: firstBook.Title));
+        Assert.Equal(firstBook.Title, Assert.Single(filteredBooks).Title);
+        IReadOnlyList<AuthorReportData> filteredAuthors = await repository.GetAuthorsAsync(
+            new ReportFilters(Search: authors[0].LastName, Nationality: authors[0].Nationality));
+        Assert.Contains(filteredAuthors, author => author.LastName == authors[0].LastName);
+        IReadOnlyList<CategoryReportData> filteredCategories = await repository.GetCategoriesAsync(
+            new ReportFilters(Search: categories[0].Name));
+        Assert.Equal(categories[0].Name, Assert.Single(filteredCategories).Name);
+
+        Book book = await context.Books.OrderBy(entity => entity.Title).FirstAsync();
+        book.Deactivate();
+        await context.SaveChangesAsync();
+
+        IReadOnlyList<BookReportData> booksAfterDeactivation = await repository.GetBooksAsync();
+        Assert.Equal(10, booksAfterDeactivation.Count);
+        Assert.Contains(booksAfterDeactivation, entity => entity.Title == book.Title && !entity.IsActive);
     }
 
     [Fact]
