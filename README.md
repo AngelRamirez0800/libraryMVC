@@ -24,6 +24,51 @@ Utilizar dotnet format, tomando de base el archivo .editorconfig permite evitar:
   dotnet build src/libraryMVC/libraryMVC.csproj
  ```
 
+## Exportación de reportes
+
+Las listas de libros, autores y categorías permiten descargar el conjunto completo
+de registros en PDF o Excel (XLSX), incluidos los inactivos. Los reportes de libros
+incluyen autores, categorías, vista previa y cantidad de imágenes; los reportes de
+autores y categorías muestran sus libros relacionados. Las asociaciones se
+presentan como nombres en una sola fila por entidad.
+
+Las listas se consultan en páginas de 15 elementos y cargan más resultados al
+desplazarse, anexándolos a la tabla. Los filtros de lista se aplican antes de
+paginación: nombre/nacionalidad para autores, título o ISBN y autor/categoría
+para libros, y nombre para categorías. Al solicitar un reporte desde una lista
+filtrada, PDF y Excel exportan todos los registros que coinciden con esos filtros.
+Los reportes de libros incrustan una miniatura de la primera imagen disponible y
+señalan el número de imágenes; el nombre de archivo no se exporta. Si no se
+encuentra una imagen disponible, el reporte lo indica.
+
+Los PDF incluyen el nombre del sistema, título, fecha/hora de generación, tabla y
+número de página. Los archivos XLSX contienen una hoja por entidad con filtros,
+filas superiores congeladas, contenido ajustado en celdas y encabezados
+repetidos al imprimir en varias páginas. Todas las descargas de reportes y sus
+botones están restringidos a los roles `Admin` y `Librarian`. La generación PDF utiliza QuestPDF con la licencia Community
+configurada en el arranque de la aplicación; antes de un despliegue comercial,
+confirma que el uso cumple los términos vigentes de QuestPDF.
+
+## Seed de literatura para probar reportes
+
+El catálogo de prueba incluye a Franz Kafka, Arthur Conan Doyle y Fyodor
+Dostoevsky, 21 libros (siete por autor), 27 categorías y 15 imágenes de libros.
+Se puede ejecutar explícitamente contra la conexión `DefaultConnection`:
+
+```powershell
+dotnet run --project src\libraryMVC\libraryMVC.csproj -- --seed-literature
+```
+
+El comando aplica primero las migraciones pendientes y luego crea o reutiliza los
+autores, libros y categorías; no se ejecuta al iniciar normalmente y rechaza el
+entorno `Testing`. La migración agrega unicidad para ISBN e identidad natural de
+autor; si detecta duplicados preexistentes, aborta sin eliminarlos ni fusionarlos.
+Haz una copia de seguridad antes de ejecutarlo en una base con datos importantes.
+Los retratos se guardan como archivos estáticos (el modelo `Author` no tiene una
+relación de imagen 1:1); las imágenes históricas de libros se asocian mediante
+`BookImage`. No todas las obras tienen imagen. Las fuentes, licencias y obras
+representadas se documentan en [literature-seed-provenance.md](licenses/literature-seed-provenance.md).
+
  # Suite de testing
 
  La aplicación y sus pruebas están separadas en `src/` y `tests/`. Para compilar y
